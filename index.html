@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sổ chủ nhiệm điện tử V55 - Lớp 5/2</title>
+<title>Sổ chủ nhiệm điện tử V56 - Lớp 5/2</title>
 <style>
 :root{
   --primary:#2563eb;--primary2:#1d4ed8;--bg:#f4f7fb;--card:#fff;--text:#172033;
@@ -382,7 +382,14 @@ html,body{margin:0!important;min-height:100%!important;height:auto!important;ove
 .group-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.group-card{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:15px}.group-card h3{margin:0 0 8px}.group-member{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #eaeef4;font-size:13px}.group-member:last-child{border-bottom:0}.leader-badge{padding:3px 7px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:10px;font-weight:800}.report-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.report-box{background:#f8fafc;border:1px solid var(--line);padding:12px;border-radius:13px}.report-box b{font-size:21px;display:block}.evidence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.evidence-item{border:1px solid var(--line);background:#fff;border-radius:15px;padding:15px}.evidence-item b{display:block;margin-bottom:5px}.academic-card{border:1px solid #dbeafe;background:#f8fbff;border-radius:15px;padding:13px;margin-bottom:10px}.academic-term-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.academic-table{width:100%;min-width:680px;border-collapse:collapse}.academic-table th,.academic-table td{padding:8px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:top}.academic-table th{background:#f8fafc}.student-portal-academic{display:grid;grid-template-columns:1fr 1fr;gap:14px}.student-portal-academic .academic-card{margin-bottom:0}.group-table th,.group-table td{white-space:nowrap}
 @media(max-width:900px){.group-summary,.report-kpi,.evidence-grid,.student-portal-academic{grid-template-columns:1fr 1fr}}@media(max-width:620px){.group-summary,.report-kpi,.evidence-grid,.student-portal-academic,.academic-term-grid{grid-template-columns:1fr}}
 </style>
-</style></head>
+</style><style>
+.account-secret{display:inline-flex;align-items:center;gap:6px}.account-secret code{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:4px 7px;font-family:ui-monospace,Consolas,monospace}
+.account-platform{font-weight:800;color:#1d4ed8}.account-note{max-width:260px;white-space:pre-wrap;font-size:12px;color:#64748b}
+.account-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.account-card{border:1px solid #e5e7eb;border-radius:15px;padding:14px;background:#fff}.account-card h4{margin:0 0 9px}.account-line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed #e2e8f0}.account-line:last-child{border-bottom:0}.account-label{font-size:12px;color:#64748b}.account-value{font-weight:700;word-break:break-word}
+@media(max-width:700px){.account-cards{grid-template-columns:1fr}}
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
 <body>
 <div class="app">
 <aside class="sidebar" id="sidebar">
@@ -398,6 +405,7 @@ html,body{margin:0!important;min-height:100%!important;height:auto!important;ove
     <button data-page="diary" onclick="go('diary');return false;"><span class="icon">📔</span>Nhật ký</button>
     <button data-page="reports" onclick="go('reports');return false;"><span class="icon">📊</span>Báo cáo</button>
     <button data-page="tasks" onclick="go('tasks');return false;"><span class="icon">✅</span>Việc cần làm</button>
+    <button data-page="accounts" onclick="go('accounts');return false;"><span class="icon">🔐</span><b>Tài khoản dự thi</b></button>
     <button data-page="birthdays" onclick="go('birthdays');return false;"><span class="icon">🎂</span>Sinh nhật</button>
     <button data-page="achievements" onclick="go('achievements');return false;"><span class="icon">🏅</span>Thành tích</button>
     <button data-page="support" onclick="go('support');return false;"><span class="icon">💛</span>Cần quan tâm</button>
@@ -405,6 +413,7 @@ html,body{margin:0!important;min-height:100%!important;height:auto!important;ove
     <button data-page="groups" onclick="go('groups');return false;"><span class="icon">👥</span>Phân tổ & tổ trưởng</button>
     <button data-page="groupreports" onclick="go('groupreports');return false;"><span class="icon">🧾</span>Báo cáo tổ</button>
     <button data-page="evidence" onclick="go('evidence');return false;"><span class="icon">🏅</span>Minh chứng GVCN</button>
+    
     <button data-page="settings" onclick="go('settings');return false;"><span class="icon">⚙️</span>Cài đặt</button>
   </nav>
   <div class="sidebar-bottom"><button class="theme" id="themeBtn">🌙 Chuyển giao diện</button></div>
@@ -477,6 +486,8 @@ html,body{margin:0!important;min-height:100%!important;height:auto!important;ove
       </div>
       <div class="toolbar">
         <button class="btn" onclick="exportStudents()">⬇ Xuất hồ sơ lớp</button>
+        <button class="btn" onclick="go('accounts')">🔐 Quản lý tài khoản dự thi</button><button class="btn warning" onclick="document.getElementById('accountFileInput')?.click();go('accounts')">📥 Nhập từ Excel</button>
+        <button class="btn warning" onclick="openAccountBulkImport()">⚡ Nhập nhanh</button>
         <button class="btn primary" onclick="openStudent()">＋ Thêm học sinh</button>
       </div>
     </div>
@@ -761,6 +772,36 @@ html,body{margin:0!important;min-height:100%!important;height:auto!important;ove
   </div>
 </section>
 
+<section class="page" id="page-accounts">
+  <div class="card">
+    <div class="card-head">
+      <div><h2>🔐 Tài khoản dự thi của học sinh</h2><span class="muted">Quản lý tài khoản theo từng em để giáo viên lưu một lần và học sinh xem lại trên cổng cá nhân.</span></div>
+      <div class="toolbar">
+        <input id="accountSearch" class="search" placeholder="Tìm học sinh, cuộc thi, tài khoản..." oninput="renderAccounts()">
+        <select id="accountStudentFilter" onchange="renderAccounts()"><option value="">Tất cả học sinh</option></select>
+        <button class="btn" onclick="downloadAccountTemplate()">⬇ Tải mẫu Excel/CSV</button>
+        <button class="btn" onclick="document.getElementById('accountFileInput').click()">📥 Nhập file</button>
+        <input id="accountFileInput" type="file" accept=".xlsx,.xls,.csv,.txt,.tsv" hidden onchange="importAccountFile(this.files[0])">
+        <button class="btn" onclick="exportAccounts()">⬇ Xuất danh sách</button>
+        <button class="btn primary" onclick="openAccountForm()">＋ Thêm tài khoản</button>
+      </div>
+    </div>
+    <div class="note-box" style="margin-top:0"><strong>🔒 Lưu ý:</strong> Chỉ nên lưu tài khoản phục vụ học tập/dự thi. Mật khẩu được ẩn mặc định. Học sinh chỉ nhìn thấy tài khoản của chính mình.</div>
+    <div class="note-box" style="margin-top:10px;background:#eff6ff;border-color:#bfdbfe"><strong>📥 Nhập hàng loạt:</strong> Tải mẫu → điền tài khoản cho nhiều học sinh trong Excel → lưu thành <b>.xlsx</b> hoặc <b>.csv</b> → bấm <b>📥 Nhập file</b>. Dữ liệu sẽ được lưu vào từng học sinh và đồng bộ sang cổng học sinh.</div>
+    <div class="stats" style="margin-top:16px">
+      <div class="stat"><div class="label">Tổng tài khoản</div><div class="value" id="accountTotal">0</div></div>
+      <div class="stat"><div class="label">Học sinh có tài khoản</div><div class="value" id="accountStudents">0</div></div>
+      <div class="stat"><div class="label">Nền tảng/cuộc thi</div><div class="value" id="accountPlatforms">0</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>STT</th><th>Học sinh</th><th>Cuộc thi / nền tảng</th><th>Tài khoản</th><th>Mật khẩu</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
+        <tbody id="accountTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="page-settings">
   <div class="card"><div class="card-head"><h2>⚙ Cài đặt lớp học</h2><button class="btn primary" onclick="saveSettings()">Lưu cài đặt</button></div>
     <div class="form-grid">
@@ -811,6 +852,7 @@ db.tasks ||= [];
 db.students.forEach(s=>{ if(!s.status) s.status='active'; });
 
 db.myWork ||= [];
+db.students.forEach(s=>{ if(!Array.isArray(s.contestAccounts)) s.contestAccounts=[]; });
 const assessmentSubjects=[
   {key:'tiengviet',name:'Tiếng Việt',score:true},
   {key:'toan',name:'Toán',score:true},
@@ -838,14 +880,14 @@ for(let ww=1;ww<=35;ww++){
 function save(){localStorage.setItem(KEY,JSON.stringify(db));if(window.__syncV53)window.__syncV53()}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),1800)}
 function renderPage(page){
- const map={dashboard:renderDashboard,students:renderStudents,assessment:renderAssessment,mywork:renderMyWork,comments:renderComments,attendance:renderAttendance,competition:renderCompetition,weeks:renderWeeks,classmeeting:renderMeeting,diary:renderDiary,reports:renderReports,tasks:renderTasks,birthdays:renderBirthdays,achievements:renderAchievements,support:renderSupport,announcements:renderAnnouncements,groups:renderGroups,groupreports:renderGroupReports,evidence:renderEvidence,settings:renderSettings};
+ const map={dashboard:renderDashboard,students:renderStudents,assessment:renderAssessment,mywork:renderMyWork,comments:renderComments,attendance:renderAttendance,competition:renderCompetition,weeks:renderWeeks,classmeeting:renderMeeting,diary:renderDiary,reports:renderReports,tasks:renderTasks,birthdays:renderBirthdays,achievements:renderAchievements,support:renderSupport,announcements:renderAnnouncements,groups:renderGroups,groupreports:renderGroupReports,evidence:renderEvidence,accounts:renderAccounts,settings:renderSettings};
  try{ if(map[page]) map[page](); }catch(err){ console.error('Lỗi render '+page,err); toast('Có lỗi khi tải mục này. Dữ liệu vẫn được giữ nguyên.'); }
  if(page==='dashboard') try{renderDashboardTasks()}catch(e){}
 }
 function go(page){
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
- const labels={dashboard:'Tổng quan',students:'Học sinh',assessment:'Đánh giá & họp PH',mywork:'Việc của tôi',comments:'Nhận xét tuần',attendance:'Điểm danh',competition:'Thi đua',weeks:'35 tuần học',classmeeting:'Sinh hoạt lớp',diary:'Nhật ký',reports:'Báo cáo',tasks:'Việc cần làm',birthdays:'Sinh nhật học sinh',achievements:'Thành tích',support:'Cần quan tâm',announcements:'Thông báo lớp',groups:'Phân tổ & tổ trưởng',groupreports:'Báo cáo tổ',evidence:'Minh chứng GVCN',settings:'Cài đặt'};
+ const labels={dashboard:'Tổng quan',students:'Học sinh',assessment:'Đánh giá & họp PH',mywork:'Việc của tôi',comments:'Nhận xét tuần',attendance:'Điểm danh',competition:'Thi đua',weeks:'35 tuần học',classmeeting:'Sinh hoạt lớp',diary:'Nhật ký',reports:'Báo cáo',tasks:'Việc cần làm',birthdays:'Sinh nhật học sinh',achievements:'Thành tích',support:'Cần quan tâm',announcements:'Thông báo lớp',groups:'Phân tổ & tổ trưởng',groupreports:'Báo cáo tổ',evidence:'Minh chứng GVCN',accounts:'Tài khoản dự thi',settings:'Cài đặt'};
  document.getElementById('pageTitle').textContent=labels[page]||page;
  document.getElementById('sidebar').classList.remove('open');
  renderPage(page);
@@ -1005,6 +1047,7 @@ function renderStudents(){
      <td><strong style="color:#1d4ed8">${scoreOf(s.id)}</strong></td>
      <td><div class="toolbar">
        <button class="btn sm" onclick="showStudent(${s.id})">Hồ sơ</button>
+       <button class="btn sm" onclick="openAccountForm(${s.id})">🔐 Tài khoản</button>
        <button class="btn sm" onclick="openStudent(${s.id})">✏ Sửa</button>
        <button class="btn sm" onclick="printStudent(${s.id})">🖨</button>
        <button class="btn danger sm" onclick="deleteStudent(${s.id})">Xóa</button>
@@ -1435,9 +1478,201 @@ function openGroupReportForm(group=1){
 function saveGroupReport(group){const r={study:grStudy.value.trim(),attendance:grAttendance.value.trim(),discipline:grDiscipline.value.trim(),clean:grClean.value.trim(),unity:grUnity.value.trim(),good:grGood.value.trim(),issue:grIssue.value.trim(),next:grNext.value.trim(),updatedAt:new Date().toISOString()};ensureGroupsData()[group]=r;save();closeModal();renderGroupReports();toast(`✓ Đã lưu báo cáo Tổ ${group} – Tuần ${db.currentWeek}`);}
 function renderGroupReports(){const reports=ensureGroupsData();const list=document.getElementById('groupReportList');if(!list)return;const groups=[1,2,3,4];const done=groups.filter(g=>reports[g]&&Object.values(reports[g]).some(v=>String(v||'').trim())).length;document.getElementById('grCompleted').textContent=`${done}/4`;document.getElementById('grWeek').textContent=db.currentWeek;document.getElementById('grLeaders').textContent=[1,2,3,4].filter(g=>db.students.some(s=>groupNumOf(s)===g&&s.isGroupLeader)).length;document.getElementById('grNeed').textContent=4-done;list.innerHTML=groups.map(g=>{const r=reports[g]||{};const lead=db.students.find(s=>groupNumOf(s)===g&&s.isGroupLeader);return `<div class="note-box" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:10px"><div><h3 style="margin:0">👥 Tổ ${g}</h3><div class="student-meta">Tổ trưởng: ${esc(lead?.name||'Chưa chọn')}</div></div><button class="btn primary sm" onclick="openGroupReportForm(${g})">${Object.keys(r).length?'✏ Cập nhật':'＋ Nhập báo cáo'}</button></div><div class="group-summary" style="grid-template-columns:repeat(3,1fr);margin-top:10px"><div class="group-card"><b>📚 Học tập</b><div class="muted" style="white-space:pre-wrap">${esc(r.study||'Chưa nhập')}</div></div><div class="group-card"><b>📏 Nề nếp</b><div class="muted" style="white-space:pre-wrap">${esc(r.discipline||'Chưa nhập')}</div></div><div class="group-card"><b>🎯 Tuần tới</b><div class="muted" style="white-space:pre-wrap">${esc(r.next||'Chưa nhập')}</div></div></div></div>`}).join('');}
 function printGroupReports(){const reports=ensureGroupsData();const html=`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Báo cáo tổ tuần ${db.currentWeek}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial;color:#111}h1{text-align:center;margin:0 0 4px}.meta{text-align:center;color:#555;margin-bottom:18px}.report{border:1px solid #bbb;border-radius:8px;padding:12px;margin-bottom:14px;break-inside:avoid}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box{border:1px solid #ddd;padding:8px;min-height:55px}.box b{display:block;font-size:11px;color:#666;margin-bottom:4px}</style></head><body><h1>${esc(db.settings.school)}</h1><div class="meta">BÁO CÁO HOẠT ĐỘNG TỔ · LỚP ${esc(db.settings.className)} · TUẦN ${db.currentWeek}</div>${[1,2,3,4].map(g=>{const r=reports[g]||{},lead=db.students.find(s=>groupNumOf(s)===g&&s.isGroupLeader);return `<div class="report"><h2>Tổ ${g}</h2><p><b>Tổ trưởng:</b> ${esc(lead?.name||'Chưa chọn')}</p><div class="grid">${[['Học tập',r.study],['Chuyên cần',r.attendance],['Nề nếp',r.discipline],['Vệ sinh',r.clean],['Đoàn kết',r.unity],['Việc tốt',r.good],['Vấn đề cần hỗ trợ',r.issue],['Tuần tới',r.next]].map(x=>`<div class="box"><b>${x[0]}</b>${esc(x[1]||'Chưa nhập')}</div>`).join('')}</div></div>`}).join('')}<script>window.onload=()=>window.print()<\\/script></body></html>`;downloadFile(`bao-cao-4-to-tuan-${db.currentWeek}-${db.settings.className}.html`,html,'text/html;charset=utf-8');}
-function renderEvidence(){const el=document.getElementById('evidenceGrid');if(!el)return;const weekDone=Object.values(db.weeks||{}).filter(w=>w.summary||w.weeklyPlan||Object.keys(w.attendanceByDate||{}).length||Object.keys(w.comments||{}).length).length;const tasks=(db.tasks||[]).length;const ach=safeArr('achievements').length;const sup=safeArr('support').length;const ann=safeArr('announcements').length;const gr=Object.values(ensureGroupsData()).filter(r=>r&&Object.values(r).some(v=>String(v||'').trim())).length;const academicReady=db.students.filter(s=>{const a=assessmentData(s.id,'hk1');return Object.values(a.subjects||{}).some(x=>x.level||x.score!==''&&x.score!=null)}).length;const items=[['👨‍🎓','Quản lý hồ sơ lớp',`${db.students.length} học sinh`],['📅','Điểm danh – chuyên cần',`${weekDone} tuần có dữ liệu`],['✅','Giao nhiệm vụ – tự quản',`${tasks} việc đã giao`],['🏅','Động viên – tuyên dương',`${ach} thành tích/việc tốt`],['💛','Học sinh cần quan tâm',`${sup} hồ sơ hỗ trợ`],['📣','Truyền thông lớp',`${ann} thông báo`],['📚','Kết quả học tập',`${academicReady}/${db.students.length} em đã có dữ liệu HKI`],['👥','Tự quản theo tổ',`${gr}/4 tổ đã có báo cáo tuần hiện tại`],['📔','Nhật ký chủ nhiệm',`${safeArr('diary').length} ghi chép`],['📝','Sinh hoạt lớp',`${Object.values(db.weeks||{}).filter(w=>Object.values(w.meeting||{}).some(Boolean)).length} tuần có dữ liệu`],['💬','Nhận xét cá nhân',`${Object.values(db.weeks||{}).reduce((n,w)=>n+Object.keys(w.comments||{}).length,0)} lượt nhận xét`],['🎯','Tiến độ năm học',`Tuần ${db.currentWeek}/35`]];el.innerHTML=items.map(x=>`<div class="evidence-item"><div style="font-size:28px">${x[0]}</div><b>${x[1]}</b><div class="muted">${x[2]}</div></div>`).join('');}
+function renderEvidence(){const el=document.getElementById('evidenceGrid');if(!el)return;const weekDone=Object.values(db.weeks||{}).filter(w=>w.summary||w.weeklyPlan||Object.keys(w.attendanceByDate||{}).length||Object.keys(w.comments||{}).length).length;const tasks=(db.tasks||[]).length;const ach=safeArr('achievements').length;const sup=safeArr('support').length;const ann=safeArr('announcements').length;const gr=Object.values(ensureGroupsData()).filter(r=>r&&Object.values(r).some(v=>String(v||'').trim())).length;const academicReady=db.students.filter(s=>{const a=assessmentData(s.id,'hk1');return Object.values(a.subjects||{}).some(x=>x.level||x.score!==''&&x.score!=null)}).length;const items=[['👨‍🎓','Quản lý hồ sơ lớp',`${db.students.length} học sinh`],['🔐','Tài khoản dự thi',`${db.students.reduce((n,s)=>n+getStudentAccounts(s).length,0)} tài khoản`],['📅','Điểm danh – chuyên cần',`${weekDone} tuần có dữ liệu`],['✅','Giao nhiệm vụ – tự quản',`${tasks} việc đã giao`],['🏅','Động viên – tuyên dương',`${ach} thành tích/việc tốt`],['💛','Học sinh cần quan tâm',`${sup} hồ sơ hỗ trợ`],['📣','Truyền thông lớp',`${ann} thông báo`],['📚','Kết quả học tập',`${academicReady}/${db.students.length} em đã có dữ liệu HKI`],['👥','Tự quản theo tổ',`${gr}/4 tổ đã có báo cáo tuần hiện tại`],['📔','Nhật ký chủ nhiệm',`${safeArr('diary').length} ghi chép`],['📝','Sinh hoạt lớp',`${Object.values(db.weeks||{}).filter(w=>Object.values(w.meeting||{}).some(Boolean)).length} tuần có dữ liệu`],['💬','Nhận xét cá nhân',`${Object.values(db.weeks||{}).reduce((n,w)=>n+Object.keys(w.comments||{}).length,0)} lượt nhận xét`],['🎯','Tiến độ năm học',`Tuần ${db.currentWeek}/35`]];el.innerHTML=items.map(x=>`<div class="evidence-item"><div style="font-size:28px">${x[0]}</div><b>${x[1]}</b><div class="muted">${x[2]}</div></div>`).join('');}
 function exportTeacherEvidence(){const r=ensureGroupsData();const rows=[['Nhóm minh chứng','Số lượng / trạng thái'],['Hồ sơ học sinh',db.students.length],['Tuần có dữ liệu',Object.values(db.weeks||{}).filter(w=>w.summary||w.weeklyPlan||Object.keys(w.attendanceByDate||{}).length).length],['Việc đã giao',safeArr('tasks').length],['Thành tích',safeArr('achievements').length],['Học sinh cần quan tâm',safeArr('support').length],['Thông báo',safeArr('announcements').length],['Báo cáo tổ tuần hiện tại',Object.keys(r).length],['Nhật ký chủ nhiệm',safeArr('diary').length],['Tuần hiện tại',db.currentWeek+'/35']];downloadCSV(`minh-chung-gvcngioi-${db.settings.className}.csv`,rows);toast('✓ Đã xuất bảng minh chứng GVCN');}
 function renderAcademicForStudent(d){const escH=esc;const phases=(d?.hk1?.results)||{};const phaseBox=['mid1','final1','mid2','final2'].map(k=>`<div class="academic-card"><h3 style="margin:0 0 6px">📌 ${phaseLabel(k)}</h3><div style="font-size:18px;font-weight:800;color:#1d4ed8">${escH(phases[k]||'Chưa nhập')}</div></div>`).join('');const termBlock=(label,x)=>{const rows=assessmentSubjects.map(sub=>{const q=x?.subjects?.[sub.key]||{};return `<tr><td>${escH(sub.name)}</td><td>${escH(levelText(q.level)||'—')}</td><td>${q.score!==''&&q.score!=null?escH(q.score):'—'}</td><td>${escH(q.comment||'')}</td></tr>`}).join('');const cn=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo'];const qn=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];return `<div class="academic-card"><h3 style="margin:0 0 10px">📘 ${label}</h3><div class="table-wrap"><table class="academic-table"><thead><tr><th>Môn học / HĐGD</th><th>Mức đạt được</th><th>Điểm</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table></div><div style="margin-top:10px"><b>🧠 Năng lực:</b> ${cn.map((n,i)=>`<span class="portal-badge">${n}: ${escH(x?.competencies?.[i]||'—')}</span>`).join(' ')}</div><div style="margin-top:8px"><b>🌱 Phẩm chất:</b> ${qn.map((n,i)=>`<span class="portal-badge">${n}: ${escH(x?.qualities?.[i]||'—')}</span>`).join(' ')}</div><div class="note-box" style="margin-top:10px"><b>Nhận xét chung</b><p>${escH(x?.comment||'Chưa nhập.')}</p></div><div class="note-box"><b>Đề nghị phối hợp</b><p>${escH(x?.proposal||'Chưa nhập.')}</p></div></div>`};return `<div class="academic-term-grid" style="margin-bottom:14px">${phaseBox}</div><div class="student-portal-academic">${termBlock('HỌC KỲ I',d?.hk1||{})}${termBlock('HỌC KỲ II · CUỐI NĂM',d?.hk2||{})}</div>`;}
+
+function escAttr(v){return esc(v).replace(/`/g,'&#96;')}
+function getStudentAccounts(s){if(!Array.isArray(s.contestAccounts))s.contestAccounts=[];return s.contestAccounts}
+function renderAccounts(){
+  const sel=document.getElementById('accountStudentFilter'), qEl=document.getElementById('accountSearch'), table=document.getElementById('accountTable');
+  if(!sel||!table)return;
+  const previous=sel.value;
+  sel.innerHTML='<option value="">Tất cả học sinh</option>'+db.students.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===previous))sel.value=previous;
+  const q=(qEl?.value||'').trim().toLowerCase(), filterId=Number(sel.value)||0;
+  const rows=[];
+  db.students.forEach(s=>{
+    if(filterId&&Number(s.id)!==filterId)return;
+    getStudentAccounts(s).forEach((a,idx)=>{
+      const hay=[s.name,a.platform,a.username,a.note,a.url].join(' ').toLowerCase();
+      if(q&&!hay.includes(q))return;
+      rows.push({s,a,idx});
+    });
+  });
+  const total=document.getElementById('accountTotal'), stu=document.getElementById('accountStudents'), plat=document.getElementById('accountPlatforms');
+  if(total)total.textContent=rows.length;
+  if(stu)stu.textContent=new Set(rows.map(r=>r.s.id)).size;
+  if(plat)plat.textContent=new Set(rows.map(r=>String(r.a.platform||'').trim()).filter(Boolean)).size;
+  table.innerHTML=rows.length?rows.map((r,i)=>{
+    const a=r.a||{};
+    return `<tr>
+      <td>${i+1}</td>
+      <td><b>${esc(r.s.name)}</b><div class="student-meta">Lớp ${esc(db.settings.className||'5/2')}</div></td>
+      <td><span class="account-platform">${esc(a.platform||'Chưa đặt tên')}</span>${a.url?`<div class="student-meta"><a href="${escAttr(a.url)}" target="_blank" rel="noopener">🔗 Mở trang</a></div>`:''}</td>
+      <td><code>${esc(a.username||'')}</code></td>
+      <td><div class="account-secret"><code id="acct-pw-${r.s.id}-${r.idx}">••••••••</code><button class="btn sm" onclick="toggleAccountPassword(${r.s.id},${r.idx},this)">Xem</button></div></td>
+      <td><div class="account-note">${esc(a.note||'')}</div></td>
+      <td><button class="btn sm" onclick="openAccountForm(${r.s.id},${r.idx})">✏ Sửa</button> <button class="btn danger sm" onclick="deleteAccount(${r.s.id},${r.idx})">🗑 Xóa</button></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="7"><div class="empty">Chưa có tài khoản phù hợp. Bấm “＋ Thêm tài khoản” để bắt đầu.</div></td></tr>';
+}
+function openAccountForm(studentId=0,index=-1){
+  const students=db.students, s=students.find(x=>Number(x.id)===Number(studentId))||students[0];
+  if(!s)return;
+  const existing=index>=0?getStudentAccounts(s)[index]:null;
+  const d=existing||{platform:'',username:'',password:'',note:'',url:''};
+  showModal(index>=0?'Điều chỉnh tài khoản dự thi':'Thêm tài khoản dự thi',`
+    <div class="form-grid">
+      <div class="form-group full"><label>Học sinh *</label><select id="acctStudent">${students.map(x=>`<option value="${x.id}" ${Number(x.id)===Number(s.id)?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Cuộc thi / nền tảng *</label><input id="acctPlatform" value="${esc(d.platform||'')}" placeholder="Ví dụ: IOE, VioEdu, Violympic..."></div>
+      <div class="form-group"><label>Tài khoản *</label><input id="acctUsername" value="${esc(d.username||'')}"></div>
+      <div class="form-group"><label>Mật khẩu</label><input id="acctPassword" type="text" value="${esc(d.password||'')}"></div>
+      <div class="form-group"><label>Liên kết trang đăng nhập</label><input id="acctUrl" type="url" value="${esc(d.url||'')}" placeholder="https://..."></div>
+      <div class="form-group full"><label>Ghi chú</label><textarea id="acctNote" style="min-height:80px" placeholder="Ví dụ: tài khoản thi cấp trường, dùng khi ôn luyện...">${esc(d.note||'')}</textarea></div>
+    </div>
+    <div class="note-box" style="margin-top:12px"><b>👨‍🎓 Trên cổng học sinh:</b> em chỉ nhìn thấy tài khoản của chính mình.</div>
+    <div class="toolbar" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" onclick="saveAccount(${Number(studentId)||0},${index})">💾 Lưu tài khoản</button></div>
+  `);
+}
+function saveAccount(originalStudentId,index){
+  const newStudentId=Number(document.getElementById('acctStudent').value)||0;
+  const s=db.students.find(x=>Number(x.id)===newStudentId);
+  if(!s)return;
+  const platform=document.getElementById('acctPlatform').value.trim(),username=document.getElementById('acctUsername').value.trim();
+  if(!platform||!username){alert('Vui lòng nhập Cuộc thi / nền tảng và Tài khoản.');return;}
+  getStudentAccounts(s);
+  const record={id:Date.now()+Math.floor(Math.random()*1000),platform,username,password:document.getElementById('acctPassword').value||'',url:document.getElementById('acctUrl').value.trim(),note:document.getElementById('acctNote').value.trim()};
+  if(index>=0){
+    const original=db.students.find(x=>Number(x.id)===Number(originalStudentId));
+    if(original&&Array.isArray(original.contestAccounts)&&original.contestAccounts[index]){
+      if(original===s) original.contestAccounts[index]=record;
+      else {original.contestAccounts.splice(index,1);getStudentAccounts(s).push(record);}
+    }else getStudentAccounts(s).push(record);
+  }else getStudentAccounts(s).push(record);
+  save();closeModal();renderAccounts();toast('✓ Đã lưu tài khoản dự thi');
+}
+function deleteAccount(studentId,index){
+  const s=db.students.find(x=>Number(x.id)===Number(studentId)); if(!s)return;
+  if(!confirm(`Xóa tài khoản ${s.contestAccounts?.[index]?.platform||''} của ${s.name}?`))return;
+  getStudentAccounts(s).splice(index,1);save();renderAccounts();toast('Đã xóa tài khoản');
+}
+function toggleAccountPassword(studentId,index,btn){
+  const s=db.students.find(x=>Number(x.id)===Number(studentId));if(!s)return;
+  const pw=getStudentAccounts(s)[index]?.password||'';
+  const el=document.getElementById(`acct-pw-${studentId}-${index}`);if(!el)return;
+  const showing=el.dataset.show==='1';el.textContent=showing?'••••••••':(pw||'(trống)');el.dataset.show=showing?'0':'1';btn.textContent=showing?'Xem':'Ẩn';
+}
+function exportAccounts(){
+  const rows=[['Học sinh','Cuộc thi / nền tảng','Tài khoản','Mật khẩu','Liên kết','Ghi chú']];
+  db.students.forEach(s=>getStudentAccounts(s).forEach(a=>rows.push([s.name,a.platform||'',a.username||'',a.password||'',a.url||'',a.note||''])));
+  downloadCSV(`tai-khoan-du-thi-${db.settings.className||'5-2'}.csv`,rows);toast('✓ Đã xuất danh sách tài khoản');
+}
+function openAccountBulkImport(){
+ showModal('⚡ Nhập nhanh tài khoản dự thi',`
+  <div class="note-box"><b>Cách nhập:</b> Dán dữ liệu từ Excel/Google Sheets theo 6 cột, mỗi dòng một tài khoản:<br><code>Học sinh | Cuộc thi/nền tảng | Tài khoản | Mật khẩu | Liên kết | Ghi chú</code><br><span class="muted">Có thể dùng dấu Tab, dấu | hoặc dấu chấm phẩy ; để ngăn cách cột. Tên học sinh phải khớp với danh sách lớp.</span></div>
+  <div class="form-group" style="margin-top:12px"><label>Dữ liệu tài khoản</label><textarea id="acctBulkText" style="min-height:260px" placeholder="Nguyễn Văn A\tIOE\tnguyenvana\t123456\thttps://ioe.vn\tTài khoản cấp trường\nTrần Thị B\tVioEdu\ttranb\tabc123\thttps://vio.edu.vn\t"></textarea></div>
+  <div class="toolbar" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" onclick="saveAccountBulkImport()">💾 Nhập và lưu</button></div>
+ `);
+}
+function splitAccountBulkLine(line){
+ const raw=line.includes('\t')?line:(line.includes('|')?line:line.replaceAll(';','|'));
+ const a=raw.split(line.includes('\t')?'\t':'|').map(x=>x.trim());
+ while(a.length<6)a.push('');
+ return a.slice(0,6);
+}
+function saveAccountBulkImport(){
+ const text=(document.getElementById('acctBulkText')?.value||'').trim(); if(!text){alert('Chưa có dữ liệu để nhập.');return;}
+ let added=0,updated=0,missing=[];
+ text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((line,idx)=>{
+  const [name,platform,username,password,url,note]=splitAccountBulkLine(line);
+  if(!name||/^(học sinh|học sinh)$/i.test(name))return;
+  const s=db.students.find(x=>String(x.name||'').trim().toLowerCase()===name.toLowerCase());
+  if(!s){missing.push(name);return;}
+  if(!platform||!username){missing.push(`${name} (thiếu nền tảng hoặc tài khoản)`);return;}
+  const list=getStudentAccounts(s); const existing=list.find(a=>String(a.platform||'').trim().toLowerCase()===platform.toLowerCase()&&String(a.username||'').trim().toLowerCase()===username.toLowerCase());
+  const rec={id:existing?.id||Date.now()+Math.floor(Math.random()*100000),platform,username,password,url,note};
+  if(existing){Object.assign(existing,rec);updated++;}else{list.push(rec);added++;}
+ });
+ save();closeModal();renderAccounts();
+ toast(`✓ Đã nhập ${added} mới · cập nhật ${updated}`);
+ if(missing.length)setTimeout(()=>alert('Các dòng chưa nhập được:\n\n'+missing.join('\n')),80);
+}
+
+function downloadAccountTemplate(){
+  const rows=[['Học sinh','Cuộc thi / nền tảng','Tài khoản','Mật khẩu','Liên kết','Ghi chú']];
+  const sample=db.students.slice(0,3);
+  sample.forEach(s=>rows.push([s.name,'IOE','','','https://ioe.vn','Tài khoản dự thi']));
+  downloadCSV('mau-tai-khoan-du-thi.csv',rows);toast('✓ Đã tải mẫu nhập tài khoản');
+}
+function parseDelimitedRows(text){
+  const lines=String(text||'').split(/\r?\n/).filter(line=>line.trim());
+  if(!lines.length)return [];
+  const delim=lines[0].includes('\t')?'\t':(lines[0].includes(';')?';':',');
+  return lines.map(line=>{
+    const out=[];let cur='',quote=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){
+        if(quote && line[i+1]==='"'){cur+='"';i++;}
+        else quote=!quote;
+      }else if(ch===delim && !quote){out.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    out.push(cur.trim());
+    while(out.length<6)out.push('');
+    return out.slice(0,6);
+  });
+}
+async function importAccountFile(file){
+  if(!file)return;
+  try{
+    let rows=[];
+    if(/\.xlsx?$/i.test(file.name)){
+      if(!window.XLSX){throw new Error('Trình đọc Excel chưa tải xong. Hãy thử lại sau vài giây hoặc lưu file thành CSV.');}
+      const buf=await file.arrayBuffer();
+      const wb=window.XLSX.read(buf,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      rows=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).map(r=>[...r].slice(0,6));
+    }else{
+      rows=parseDelimitedRows(await file.text());
+    }
+    let textRows=rows.filter(r=>r.some(v=>String(v??'').trim()));
+    if(textRows.length && /học sinh/i.test(String(textRows[0][0]||''))) textRows=textRows.slice(1);
+    let added=0,updated=0,missing=[];
+    textRows.forEach((r)=>{
+      const [name,platform,username,password,url,note]=r.map(v=>String(v??'').trim());
+      if(!name)return;
+      const s=db.students.find(x=>String(x.name||'').trim().toLowerCase()===name.toLowerCase());
+      if(!s){missing.push(name);return;}
+      if(!platform||!username){missing.push(`${name} (thiếu nền tảng hoặc tài khoản)`);return;}
+      const list=getStudentAccounts(s);
+      const existing=list.find(a=>String(a.platform||'').trim().toLowerCase()===platform.toLowerCase() && String(a.username||'').trim().toLowerCase()===username.toLowerCase());
+      const rec={id:existing?.id||Date.now()+Math.floor(Math.random()*100000),platform,username,password,url,note};
+      if(existing){Object.assign(existing,rec);updated++;}else{list.push(rec);added++;}
+    });
+    save();renderAccounts();
+    toast(`✓ Nhập file: ${added} mới · ${updated} cập nhật`);
+    if(missing.length)setTimeout(()=>alert('Các dòng chưa nhập được:\n\n'+missing.join('\n')),100);
+  }catch(err){alert('Không đọc được file tài khoản: '+(err?.message||err));}
+  finally{const el=document.getElementById('accountFileInput');if(el)el.value='';}
+}
+
+function renderStudentAccountsForPortal(accounts){
+  const el=document.getElementById('portalAccounts'); if(!el)return;
+  const arr=Array.isArray(accounts)?accounts:[];
+  if(!arr.length){el.innerHTML='<div class="empty">Giáo viên chưa lưu tài khoản dự thi cho em.</div>';return;}
+  el.innerHTML=`<div class="account-cards">${arr.map((a,i)=>`<div class="account-card">
+    <h4>🏆 ${esc(a.platform||'Tài khoản học tập')}</h4>
+    ${a.url?`<div style="margin-bottom:8px"><a href="${escAttr(a.url)}" target="_blank" rel="noopener">🔗 Mở trang đăng nhập</a></div>`:''}
+    <div class="account-line"><span class="account-label">Tài khoản</span><span class="account-value">${esc(a.username||'—')}</span></div>
+    <div class="account-line"><span class="account-label">Mật khẩu</span><span class="account-value"><code class="portal-pw">••••••••</code> <button class="btn sm" onclick="studentShowAccountPassword(this,${i})">Xem</button><span class="student-account-hidden" style="display:none">${esc(a.password||'(trống)')}</span></span></div>
+    ${a.note?`<div class="note-box" style="margin-top:10px"><b>📝 Ghi chú:</b><div style="margin-top:4px;white-space:pre-wrap">${esc(a.note)}</div></div>`:''}
+  </div>`).join('')}</div>`;
+  window.__portalAccounts=arr;
+}
+window.studentShowAccountPassword=function(btn,i){const box=btn.parentElement,hidden=box.querySelector('.student-account-hidden'),code=box.querySelector('.portal-pw');if(!hidden)return;const show=hidden.style.display==='none';hidden.style.display=show?'inline':'none';code.textContent=show?'':'••••••••';btn.textContent=show?'Ẩn':'Xem';};
+
 function renderSettings(){let s=db.settings;setSchool.value=s.school;setClass.value=s.className;setYear.value=s.year;setTeacher.value=s.teacher;setNote.value=s.note||''}
 function saveSettings(){db.settings={school:setSchool.value.trim()||'Trường Tiểu học',className:setClass.value.trim()||'5/2',year:setYear.value.trim()||'2026-2027',teacher:setTeacher.value.trim()||'Giáo viên chủ nhiệm',note:setNote.value};save();renderAll();toast('✓ Đã lưu cài đặt')}
 function backup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`so-chu-nhiem-${db.settings.className}-${db.settings.year}.json`;a.click();URL.revokeObjectURL(a.href);toast('Đã xuất dữ liệu')}
@@ -1871,12 +2106,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="studentPortal" style="display:none">
  <main class="content student-portal">
   <div class="portal-hero"><div><div class="portal-chip">TRANG HỌC SINH · CHỈ XEM</div><h1>Xin chào, <span id="portalName">Học sinh</span>! 👋</h1><p id="portalMeta"></p></div><button class="btn" style="background:#fff;color:#1d4ed8" onclick="exitStudentMode()">← Thoát</button></div>
-  <div class="portal-tabs"><button class="active" id="tabTasks" onclick="portalTab('tasks')">✅ Việc cần làm</button><button id="tabNotices" onclick="portalTab('notices')">📣 Thông báo</button><button id="tabAch" onclick="portalTab('ach')">🏅 Thành tích</button><button id="tabWeek" onclick="portalTab('week')">📚 Tuần này</button><button id="tabAcademic" onclick="portalTab('academic')">📊 Kết quả học tập</button></div>
+  <div class="portal-tabs"><button class="active" id="tabTasks" onclick="portalTab('tasks')">✅ Việc cần làm</button><button id="tabNotices" onclick="portalTab('notices')">📣 Thông báo</button><button id="tabAch" onclick="portalTab('ach')">🏅 Thành tích</button><button id="tabWeek" onclick="portalTab('week')">📚 Tuần này</button><button id="tabAcademic" onclick="portalTab('academic')">📊 Kết quả học tập</button><button id="tabAccounts" onclick="portalTab('accounts')">🔐 Tài khoản dự thi</button></div>
   <div id="panelTasks" class="portal-grid"><div class="portal-card"><h3>Việc cần làm</h3><div id="portalTasksList"></div></div><div class="portal-card"><h3>Tiến độ tuần</h3><div id="portalWeekCard"></div></div></div>
   <div id="panelNotices" class="portal-grid" style="display:none"><div class="portal-card"><h3>Thông báo của giáo viên</h3><div id="portalNoticesList"></div></div><div class="portal-card"><h3>Nhắc việc</h3><div id="portalReminder"></div></div></div>
   <div id="panelAch" class="portal-grid" style="display:none"><div class="portal-card"><h3>Thành tích của em</h3><div id="portalAchList"></div></div><div class="portal-card"><h3>Điểm thi đua tuần</h3><div id="portalScore"></div></div></div>
   <div id="panelWeek" class="portal-grid" style="display:none"><div class="portal-card"><h3>Kế hoạch tuần</h3><div id="portalPlan"></div></div><div class="portal-card"><h3>Sinh hoạt lớp</h3><div id="portalMeeting"></div></div></div>
   <div id="panelAcademic" class="portal-grid" style="display:none"><div class="portal-card" style="grid-column:1/-1"><h3>📊 Kết quả học tập</h3><div id="portalAcademic"></div></div></div>
+  <div id="panelAccounts" class="portal-grid" style="display:none"><div class="portal-card" style="grid-column:1/-1"><h3>🔐 Tài khoản dự thi của em</h3><p class="muted" style="margin-top:-5px">Chỉ hiển thị các tài khoản được giáo viên lưu cho em.</p><div id="portalAccounts"></div></div></div>
  </main>
 </div>
 
@@ -2009,7 +2245,7 @@ async function refreshStudentV53(){
  syncStudentInFlightV54=true;
  let usedPublic=false;
  try{
-  const week=Number(db.currentWeek)||1;
+  const week=0;
   let d=null;
   if(syncStudentPublicTokenV54){
     usedPublic=true;
@@ -2030,6 +2266,7 @@ async function refreshStudentV53(){
   document.getElementById('portalAchList').innerHTML=(d.achievements||[]).map(a=>`<div class="note-box"><strong>⭐ ${esc(a.title||'Thành tích')}</strong><p>${esc(a.note||'')}</p></div>`).join('')||'<div class="empty">Chưa có thành tích.</div>';
   const plan=document.getElementById('portalPlan');if(plan)plan.innerHTML=`<div class="note-box"><strong>Kế hoạch tuần</strong><p>${esc(d.week?.weeklyPlan||'Chưa cập nhật.')}</p></div><div class="student-comment-card"><strong>💬 Nhận xét tuần của em</strong><p>${esc(d.week?.comment||'Giáo viên chưa nhập nhận xét tuần này.')}</p></div>`;
   const pa=document.getElementById('portalAcademic');if(pa)pa.innerHTML=renderAcademicForStudent(d.academic||{});
+  renderStudentAccountsForPortal(d.student?.accounts||[]);
   syncBadgeV53(true,'☁ Đã nhận dữ liệu');
  }catch(e){
   // Try the legacy channel once when the public channel is unavailable.
@@ -2060,16 +2297,17 @@ window.completeStudentV53=async function(id,checked){
 function renderStudentPortal(){
   const week=Number(db.currentWeek)||1, s=db.students.find(x=>x.id===portalStudentId)||db.students[0]; if(!s)return;
   const t=(db.tasks||[]).filter(x=>(x.week==null||Number(x.week)===week)&&(!Array.isArray(x.assignedTo)||!x.assignedTo.length||x.assignedTo.map(Number).includes(s.id)));
-  const d={className:db.settings?.className||'5/2',weekNumber:week,student:{id:s.id,name:s.name,group:s.group||'Chưa phân tổ'},tasks:t.map(x=>({id:x.id,title:x.title,due:x.due,priority:x.priority,completed:!!((x.completedBy||{})[s.id]),images:x.images||[]})),notices:(db.announcements||[]).filter(n=>!n.week||Number(n.week)===week),achievements:(db.achievements||[]).filter(a=>Number(a.studentId)===Number(s.id)),academic:{hk1:assessmentData(s.id,'hk1'),hk2:assessmentData(s.id,'hk2')},week:{summary:db.weeks?.[week]?.summary||'',weeklyPlan:db.weeks?.[week]?.weeklyPlan||'',comment:db.weeks?.[week]?.comments?.[s.id]||''}};
+  const d={className:db.settings?.className||'5/2',weekNumber:week,student:{id:s.id,name:s.name,group:s.group||'Chưa phân tổ',accounts:getStudentAccounts(s)},tasks:t.map(x=>({id:x.id,title:x.title,due:x.due,priority:x.priority,completed:!!((x.completedBy||{})[s.id]),images:x.images||[]})),notices:(db.announcements||[]).filter(n=>!n.week||Number(n.week)===week),achievements:(db.achievements||[]).filter(a=>Number(a.studentId)===Number(s.id)),academic:{hk1:assessmentData(s.id,'hk1'),hk2:assessmentData(s.id,'hk2')},week:{summary:db.weeks?.[week]?.summary||'',weeklyPlan:db.weeks?.[week]?.weeklyPlan||'',comment:db.weeks?.[week]?.comments?.[s.id]||''}};
   const n=e=>document.getElementById(e); if(n('portalName'))n('portalName').textContent=s.name; if(n('portalMeta'))n('portalMeta').textContent=`Lớp ${d.className} · Tuần ${week}/35`;
   if(n('portalTasksList'))n('portalTasksList').innerHTML=d.tasks.length?d.tasks.map(x=>`<div class=\"portal-item ${x.completed?'done':''}\"><input class=\"task-check\" type=\"checkbox\" ${x.completed?'checked':''}><div style=\"flex:1\"><strong>${esc(x.title)}</strong>${taskImageMarkup(x.images)}</div></div>`).join(''):'<div class="empty">Chưa có việc cần làm.</div>';
   if(n('portalNoticesList'))n('portalNoticesList').innerHTML=d.notices.map(x=>`<div class="note-box"><strong>📣 ${esc(x.title||'Thông báo')}</strong><p>${esc(x.content||'')}</p></div>`).join('')||'<div class="empty">Chưa có thông báo.</div>';
   if(n('portalAchList'))n('portalAchList').innerHTML=d.achievements.map(x=>`<div class="note-box"><strong>⭐ ${esc(x.title||'Thành tích')}</strong><p>${esc(x.note||'')}</p></div>`).join('')||'<div class="empty">Chưa có thành tích.</div>';
   if(n('portalPlan'))n('portalPlan').innerHTML=`<div class="note-box"><b>Kế hoạch tuần</b><p>${esc(d.week.weeklyPlan||'Chưa cập nhật.')}</p></div><div class="student-comment-card"><b>💬 Nhận xét tuần</b><p>${esc(d.week.comment||'Chưa cập nhật.')}</p></div>`;
   if(n('portalAcademic'))n('portalAcademic').innerHTML=renderAcademicForStudent(d.academic);
+  renderStudentAccountsForPortal(d.student.accounts||[]);
 }
 function portalTab(name){
-  const names=['tasks','notices','ach','week','academic'];
+  const names=['tasks','notices','ach','week','academic','accounts'];
   names.forEach(n=>{const p=document.getElementById('panel'+(n==='ach'?'Ach':n.charAt(0).toUpperCase()+n.slice(1)));if(p)p.style.display=(n===name)?'grid':'none';const b=document.getElementById('tab'+(n==='ach'?'Ach':n.charAt(0).toUpperCase()+n.slice(1)));if(b)b.classList.toggle('active',n===name);});
 }
 function toggleStudentTask(taskId,studentId,checked){
