@@ -152,6 +152,14 @@ tr:last-child td{border-bottom:0}
 .assessment-midterm{display:grid;gap:3px;width:100%;text-align:left}
 .assessment-midterm span{display:flex;justify-content:space-between;gap:8px;font-size:12px}
 .assessment-midterm span b{font-size:13px}
+.assessment-subject{display:grid;gap:3px;text-align:left;width:100%;min-width:90px}
+.assessment-subject-line{display:flex;align-items:center;gap:4px}
+.assessment-subject-line small{flex:1;font-size:10px}
+.assessment-subject-line b{min-width:1em;text-align:center}
+.assessment-subject-line .portal-badge{padding:1px 4px;font-size:10px}
+.assessment-remark{margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.assessment-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:660px){.assessment-edit-grid{grid-template-columns:1fr}}
 </style>
 
 <style>
@@ -1602,7 +1610,7 @@ html.ui-calm:has(body.dark) {--bg:#101b27;--card:#192737;--text:#e3ecf3;--muted:
           <option value="hk2">Học kỳ II / Cuối năm</option>
         </select>
         <input id="assessmentExcelFile" type="file" accept=".xlsx,.xls" multiple hidden onchange="openAssessmentExcelImport(this.files);this.value=''">
-        <button class="btn primary" type="button" onclick="document.getElementById('assessmentExcelFile').click()">📥 Nhập điểm từ Excel</button>
+        <button class="btn primary" type="button" onclick="document.getElementById('assessmentExcelFile').click()">📥 Nhập đánh giá từ Excel</button>
         <button class="btn" onclick="exportAssessment()">⬇ Xuất Excel/CSV</button><button class="btn" onclick="openBulkResults()">Ghi chú 4 đợt</button>
         <button class="btn primary" onclick="printAllMeetingSheets()">🖨 In phiếu họp cả lớp</button>
       </div>
@@ -1611,10 +1619,9 @@ html.ui-calm:has(body.dark) {--bg:#101b27;--card:#192737;--text:#e3ecf3;--muted:
     <div class="note-box">
       <strong>ℹ️ Cách dùng</strong>
       <div class="muted" style="font-size:13px;margin-top:4px">
-        Chọn <b>Nhập điểm từ Excel</b>, mở bảng tổng hợp và kiểm tra kết quả ghép trước khi lưu. Các ô trống trong Excel được bỏ qua.<br>
-        Bảng mẫu lớp 1–3 và lớp 4–5 đều dùng được. Nếu sheet chỉ có mức đánh giá, hệ thống để trống ô điểm.<br>
+        Chọn <b>Nhập đánh giá từ Excel</b> để nhập điểm, mức đánh giá, năng lực, phẩm chất và nhận xét từ mẫu lớp 1–3 hoặc lớp 4–5. Ô trống trong Excel được bỏ qua.<br>
         Bấm vào ô <b>Giữa kỳ I</b> hoặc <b>Giữa kỳ II</b> để sửa điểm Tiếng Việt và Toán.
-        Chọn học kỳ rồi bấm vào ô môn học trên dòng học sinh để nhập điểm cuối kỳ, mức đạt và nhận xét.
+        Chọn học kỳ để xem mức giữa kỳ và cuối kỳ của từng môn. Bấm vào ô môn học trên dòng học sinh để chỉnh sửa mức đạt, điểm cuối kỳ và nhận xét.
         Các mức gồm <b>T = Hoàn thành tốt</b>, <b>H = Hoàn thành</b> và <b>C = Chưa hoàn thành</b>.
       </div>
     </div>
@@ -1630,11 +1637,10 @@ html.ui-calm:has(body.dark) {--bg:#101b27;--card:#192737;--text:#e3ecf3;--muted:
       <table class="assessment-table">
         <thead>
           <tr>
-            <th>STT</th><th>Họ và tên</th>
+            <th scope="col">STT</th><th scope="col">Họ và tên</th>
             <th class="assessment-midterm-head" scope="col">Giữa kỳ I</th>
             <th class="assessment-midterm-head" scope="col">Giữa kỳ II</th>
-            <th>Tiếng Việt</th><th>Toán</th><th>Ngoại ngữ 1</th>
-            <th>LS & Địa lí</th><th>Khoa học</th><th>Tin học</th><th>Công nghệ</th>
+            <th id="assessmentSubjectHead" scope="col">Môn học</th>
             <th>Năng lực</th><th>Phẩm chất</th><th>Nhận xét</th><th>Họp PH</th>
           </tr>
         </thead>
@@ -1985,14 +1991,21 @@ const assessmentSubjects=[
   {key:'tiengviet',name:'Tiếng Việt',score:true},
   {key:'toan',name:'Toán',score:true},
   {key:'ngoaingu',name:'Ngoại ngữ 1',score:true},
-  {key:'lsdiali',name:'Lịch sử và Địa lí',score:true},
-  {key:'khoahoc',name:'Khoa học',score:true},
-  {key:'tinhoc',name:'Tin học',score:true},
-  {key:'congnghe',name:'Công nghệ',score:true},
-  {key:'hdtn',name:'Hoạt động trải nghiệm',score:false}
+  {key:'tnxh',name:'Tự nhiên và Xã hội',shortName:'TN & Xã hội',score:false,grades:'123'},
+  {key:'lsdiali',name:'Lịch sử và Địa lí',shortName:'LS & Địa lí',score:true,grades:'45'},
+  {key:'khoahoc',name:'Khoa học',score:true,grades:'45'},
+  {key:'tinhoc',name:'Tin học',score:true,grades:'45'},
+  {key:'congnghe',name:'Công nghệ',score:true,grades:'45'},
+  {key:'daoduc',name:'Đạo đức',score:false},
+  {key:'amnhac',name:'Âm nhạc',score:false},
+  {key:'mithuat',name:'Mĩ thuật',score:false},
+  {key:'hdtn',name:'Hoạt động trải nghiệm',shortName:'HĐ trải nghiệm',score:false},
+  {key:'gdtc',name:'Giáo dục thể chất',shortName:'GD thể chất',score:false}
 ];
 const assessmentMidtermSubjects=assessmentSubjects.filter(sub=>['tiengviet','toan'].includes(sub.key));
 const competencyOptions=['Tốt','Đạt','Cần cố gắng'];
+const assessmentCompetencyNames=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo','Ngôn ngữ','Tính toán','Khoa học','Công nghệ','Tin học','Thẩm mĩ','Thể chất'];
+const assessmentQualityNames=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];
 const gradeOptions=[
   {v:'T',t:'T – Hoàn thành tốt'},
   {v:'H',t:'H – Hoàn thành'},
@@ -2622,7 +2635,7 @@ function renderGroupReports(){const reports=ensureGroupsData();const list=docume
 function printGroupReports(){const reports=ensureGroupsData();const html=`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Báo cáo tổ tuần ${db.currentWeek}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial;color:#111}h1{text-align:center;margin:0 0 4px}.meta{text-align:center;color:#555;margin-bottom:18px}.report{border:1px solid #bbb;border-radius:8px;padding:12px;margin-bottom:14px;break-inside:avoid}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box{border:1px solid #ddd;padding:8px;min-height:55px}.box b{display:block;font-size:11px;color:#666;margin-bottom:4px}</style><\/head><body><h1>${esc(db.settings.school)}</h1><div class="meta">BÁO CÁO HOẠT ĐỘNG TỔ · LỚP ${esc(db.settings.className)} · TUẦN ${db.currentWeek}</div>${[1,2,3,4].map(g=>{const r=reports[g]||{},lead=db.students.find(s=>groupNumOf(s)===g&&s.isGroupLeader);return `<div class="report"><h2>Tổ ${g}</h2><p><b>Tổ trưởng:</b> ${esc(lead?.name||'Chưa chọn')}</p><div class="grid">${[['Nhiệm vụ dùng thẻ',r.task],['Thẻ tổ đã chọn',({green:'1 · Xanh — Hoàn thành',yellow:'2 · Vàng — Đang hoàn thiện',red:'3 · Đỏ — Cần hỗ trợ'})[r.status]||'Chưa chọn thẻ'],['Ý báo cáo của tổ',r.card?.reportNote||r.card?.evidence||r.card?.reason],['Việc tổ làm tiếp',r.card?.nextAction],['Cần giúp việc gì',r.card?.helpRequest],['Giáo viên hỗ trợ',r.card?.teacherHelp],['Hẹn kiểm tra lại',r.card?.checkDate],['Kết quả kiểm tra lại',r.card?.followupResult],['Học tập',r.study],['Chuyên cần',r.attendance],['Nề nếp',r.discipline],['Vệ sinh',r.clean],['Đoàn kết',r.unity],['Việc tốt',r.good],['Vấn đề cần hỗ trợ',r.issue],['Tuần tới',r.next]].map(x=>`<div class="box"><b>${x[0]}</b>${esc(x[1]||'Chưa nhập')}</div>`).join('')}</div></div>`}).join('')}<script>window.onload=()=>window.print()<\\/script><\/body></html>`;downloadFile(`bao-cao-4-to-tuan-${db.currentWeek}-${db.settings.className}.html`,html,'text/html;charset=utf-8');}
 function renderEvidence(){const el=document.getElementById('evidenceGrid');if(!el)return;const weekDone=Object.values(db.weeks||{}).filter(w=>w.summary||w.weeklyPlan||Object.keys(w.attendanceByDate||{}).length||Object.keys(w.comments||{}).length).length;const tasks=(db.tasks||[]).length;const ach=safeArr('achievements').length;const sup=safeArr('support').length;const ann=safeArr('announcements').length;const gr=Object.values(ensureGroupsData()).filter(r=>r&&Object.values(r).some(v=>String(v||'').trim())).length;const academicReady=db.students.filter(s=>{const a=assessmentData(s.id,'hk1');return Object.values(a.subjects||{}).some(x=>x.level||x.score!==''&&x.score!=null)}).length;const items=[['👨‍🎓','Quản lý hồ sơ lớp',`${db.students.length} học sinh`],['🔐','Tài khoản dự thi',`${db.students.reduce((n,s)=>n+getStudentAccounts(s).length,0)} tài khoản`],['📅','Điểm danh – chuyên cần',`${weekDone} tuần có dữ liệu`],['✅','Giao nhiệm vụ – tự quản',`${tasks} việc đã giao`],['🏅','Động viên – tuyên dương',`${ach} thành tích/việc tốt`],['💛','Học sinh cần quan tâm',`${sup} hồ sơ hỗ trợ`],['📣','Truyền thông lớp',`${ann} thông báo`],['📚','Kết quả học tập',`${academicReady}/${db.students.length} em đã có dữ liệu HKI`],['👥','Tự quản theo tổ',`${gr}/4 tổ đã có báo cáo tuần hiện tại`],['📔','Nhật ký chủ nhiệm',`${safeArr('diary').length} ghi chép`],['📝','Sinh hoạt lớp',`${Object.values(db.weeks||{}).filter(w=>Object.values(w.meeting||{}).some(Boolean)).length} tuần có dữ liệu`],['💬','Nhận xét cá nhân',`${Object.values(db.weeks||{}).reduce((n,w)=>n+Object.keys(w.comments||{}).length,0)} lượt nhận xét`],['🎯','Tiến độ năm học',`Tuần ${db.currentWeek}/35`]];el.innerHTML=items.map(x=>`<div class="evidence-item"><div style="font-size:28px">${x[0]}</div><b>${x[1]}</b><div class="muted">${x[2]}</div></div>`).join('');}
 function exportTeacherEvidence(){const r=ensureGroupsData();const rows=[['Nhóm minh chứng','Số lượng / trạng thái'],['Hồ sơ học sinh',db.students.length],['Tuần có dữ liệu',Object.values(db.weeks||{}).filter(w=>w.summary||w.weeklyPlan||Object.keys(w.attendanceByDate||{}).length).length],['Việc đã giao',safeArr('tasks').length],['Thành tích',safeArr('achievements').length],['Học sinh cần quan tâm',safeArr('support').length],['Thông báo',safeArr('announcements').length],['Báo cáo tổ tuần hiện tại',Object.keys(r).length],['Nhật ký chủ nhiệm',safeArr('diary').length],['Tuần hiện tại',db.currentWeek+'/35']];downloadCSV(`minh-chung-gvcngioi-${db.settings.className}.csv`,rows);toast('✓ Đã xuất bảng minh chứng GVCN');}
-function renderAcademicForStudent(d){const escH=esc;const phases=(d?.hk1?.results)||{};const phaseBox=['mid1','final1','mid2','final2'].filter(k=>phases[k]!=null&&phases[k]!=='').map(k=>`<div class="academic-card"><h3 style="margin:0 0 6px">${phaseLabel(k)}</h3><div style="white-space:pre-wrap">${escH(phases[k])}</div></div>`).join('');const termBlock=(label,x)=>{const rows=assessmentSubjectRows(x);const cn=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo'];const qn=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];return `<div class="academic-card"><h3 style="margin:0 0 10px">📘 ${label}</h3><div class="table-wrap"><table class="academic-table"><thead><tr><th>Môn học / HĐGD</th><th>Mức đạt được</th><th>Điểm giữa kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table></div><div style="margin-top:10px"><b>🧠 Năng lực:</b> ${cn.map((n,i)=>`<span class="portal-badge">${n}: ${escH(x?.competencies?.[i]||'—')}</span>`).join(' ')}</div><div style="margin-top:8px"><b>🌱 Phẩm chất:</b> ${qn.map((n,i)=>`<span class="portal-badge">${n}: ${escH(x?.qualities?.[i]||'—')}</span>`).join(' ')}</div><div class="note-box" style="margin-top:10px"><b>Nhận xét chung</b><p>${escH(x?.comment||'Chưa nhập.')}</p></div><div class="note-box"><b>Đề nghị phối hợp</b><p>${escH(x?.proposal||'Chưa nhập.')}</p></div></div>`};return `${phaseBox?`<div class="academic-term-grid" style="margin-bottom:14px">${phaseBox}</div>`:''}<div class="student-portal-academic">${termBlock('HỌC KỲ I',d?.hk1||{})}${termBlock('HỌC KỲ II · CUỐI NĂM',d?.hk2||{})}</div>`;}
+function renderAcademicForStudent(d,className){const escH=esc;const phases=(d?.hk1?.results)||{};const phaseBox=['mid1','final1','mid2','final2'].filter(k=>phases[k]!=null&&phases[k]!=='').map(k=>`<div class="academic-card"><h3 style="margin:0 0 6px">${phaseLabel(k)}</h3><div style="white-space:pre-wrap">${escH(phases[k])}</div></div>`).join('');const termBlock=(label,x)=>{const rows=assessmentSubjectRows(x,className);return `<div class="academic-card"><h3 style="margin:0 0 10px">📘 ${label}</h3><div class="table-wrap"><table class="academic-table"><thead><tr><th>Môn học / HĐGD</th><th>Mức giữa kỳ</th><th>Điểm giữa kỳ</th><th>Mức cuối kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table></div><div style="margin-top:10px"><b>🧠 Năng lực:</b> ${assessmentRubricSummary(x?.midCompetencies,x?.competencies,assessmentCompetencyNames)}</div><div style="margin-top:8px"><b>🌱 Phẩm chất:</b> ${assessmentRubricSummary(x?.midQualities,x?.qualities,assessmentQualityNames)}</div><div class="note-box" style="margin-top:10px"><b>Nhận xét chung</b>${assessmentRemarks(x?.midComment,x?.comment)}</div><div class="note-box"><b>Đề nghị phối hợp với gia đình</b>${assessmentRemarks(x?.midProposal,x?.proposal)}</div></div>`};return `${phaseBox?`<div class="academic-term-grid" style="margin-bottom:14px">${phaseBox}</div>`:''}<div class="student-portal-academic">${termBlock('HỌC KỲ I',d?.hk1||{})}${termBlock('HỌC KỲ II · CUỐI NĂM',d?.hk2||{})}</div>`;}
 
 function escAttr(v){return esc(v).replace(/`/g,'&#96;')}
 function getStudentAccounts(s){if(!Array.isArray(s.contestAccounts))s.contestAccounts=[];return s.contestAccounts}
@@ -3025,13 +3038,25 @@ const assessmentExcelSubjects={
   'tieng anh':'ngoaingu','ngoai ngu':'ngoaingu','ngoai ngu 1':'ngoaingu','ngoai ngu 1 tieng anh':'ngoaingu',
   'lich su va dia li':'lsdiali','lich su dia li':'lsdiali','lich su va dia ly':'lsdiali','lich su dia ly':'lsdiali',
   'khoa hoc':'khoahoc','tin hoc':'tinhoc','tin hoc va cong nghe tin hoc':'tinhoc',
-  'cong nghe':'congnghe','tin hoc va cong nghe cn':'congnghe','tin hoc va cong nghe cong nghe':'congnghe'
+  'cong nghe':'congnghe','tin hoc va cong nghe cn':'congnghe','tin hoc va cong nghe cong nghe':'congnghe',
+  'tu nhien va xa hoi':'tnxh','tu nhien xa hoi':'tnxh','tnxh':'tnxh','dao duc':'daoduc',
+  'am nhac':'amnhac','nghe thuat am nhac':'amnhac','mi thuat':'mithuat','my thuat':'mithuat',
+  'nghe thuat mi thuat':'mithuat','nghe thuat my thuat':'mithuat','hoat dong trai nghiem':'hdtn',
+  'hdtn':'hdtn','giao duc the chat':'gdtc','the duc':'gdtc','gdtc':'gdtc'
 };
 const assessmentExcelPeriods={
-  gk1:{term:'hk1',field:'midScore',label:'Giữa kỳ I'},
-  ck1:{term:'hk1',field:'score',label:'Cuối kỳ I'},
-  gk2:{term:'hk2',field:'midScore',label:'Giữa kỳ II'},
-  ck2:{term:'hk2',field:'score',label:'Cuối kỳ II'}
+  gk1:{term:'hk1',middle:true,label:'Giữa kỳ I'},
+  ck1:{term:'hk1',middle:false,label:'Cuối kỳ I'},
+  gk2:{term:'hk2',middle:true,label:'Giữa kỳ II'},
+  ck2:{term:'hk2',middle:false,label:'Cuối kỳ II'}
+};
+const assessmentExcelRubricGroups={
+  'pham chat chu yeu':'qualities','pham chat':'qualities',
+  'nang luc cot loi':'competencies','nang luc chung':'competencies','nang luc dac thu':'competencies','nang luc':'competencies'
+};
+const assessmentExcelRubrics={
+  qualities:assessmentQualityNames,
+  competencies:assessmentCompetencyNames
 };
 let assessmentExcelSession=null;
 let assessmentExcelReadId=0;
@@ -3087,6 +3112,25 @@ function assessmentExcelScore(value){
   const number=Number(text.replace(',','.'));
   return number>=0&&number<=10?number:NaN;
 }
+function assessmentExcelValue(kind,value){
+  const text=String(value??'').trim();
+  if(!text)return null;
+  if(kind==='score')return assessmentExcelScore(value);
+  const label=assessmentExcelText(text);
+  if(kind==='level'){
+    if(['t','hoan thanh tot'].includes(label))return 'T';
+    if(['h','hoan thanh'].includes(label))return 'H';
+    if(['c','chua hoan thanh'].includes(label))return 'C';
+    return NaN;
+  }
+  if(kind==='rubric'){
+    if(['t','tot'].includes(label))return 'Tốt';
+    if(['d','dat'].includes(label))return 'Đạt';
+    if(['c','can co gang'].includes(label))return 'Cần cố gắng';
+    return NaN;
+  }
+  return text;
+}
 
 function readAssessmentExcelSheet(sheet,sheetName,fileName,date1904){
   const end=sheet?.['!ref']?XLSX.utils.decode_range(sheet['!ref']).e:null;
@@ -3135,31 +3179,50 @@ function readAssessmentExcelSheet(sheet,sheetName,fileName,date1904){
     return result;
   }
 
-  const mergedSubjectHeader=(row,col)=>{
+  const mergedHeader=(row,col)=>{
     const direct=rows[row]?.[col];
     if(direct)return direct;
     const merge=(sheet['!merges']||[]).find(item=>item.s.r<=row&&row<=item.e.r&&item.s.c<=col&&col<=item.e.c);
     return merge?rows[merge.s.r]?.[merge.s.c]:'';
   };
   const scoreHeader=/^(?:diem(?: (?:ktdk|kt dk|kiem tra dinh ky|kiem tra dinh ki|kiem tra))?|(?:diem )?ktdk)$/;
-  for(let row=headerRow;row<start;row++){
-    rows[row].forEach((header,col)=>{
-      if(!scoreHeader.test(assessmentExcelText(header)))return;
-      let subject='';
-      for(let prev=row-1;prev>=headerRow&&!subject;prev--){
-        const label=assessmentExcelText(mergedSubjectHeader(prev,col));
-        subject=Object.hasOwn(assessmentExcelSubjects,label)?assessmentExcelSubjects[label]:'';
+  const levelHeader=/^(?:muc(?: dat(?: duoc)?)?|muc do dat duoc|muc danh gia|xep loai)$/;
+  const commentHeader=/^(?:ghi chu|nhan xet(?: chung| cua giao vien| mon hoc| ghi chu)?)(?: (?:giua|cuoi) (?:hoc )?(?:ky|ki)(?: [12i]+)?)?$/;
+  const proposalHeader=/^(?:de nghi(?: (?:ghi chu|phoi hop(?: (?:voi )?(?:gia dinh|phu huynh|cha me hoc sinh))?))?|phoi hop (?:voi )?(?:gia dinh|phu huynh|cha me hoc sinh)|kien nghi(?: phoi hop)?)$/;
+  const headerLabels=(col,limit=start)=>Array.from({length:limit-headerRow},(_,index)=>assessmentExcelText(mergedHeader(headerRow+index,col)));
+  const subjectFor=labels=>labels.map(label=>Object.hasOwn(assessmentExcelSubjects,label)?assessmentExcelSubjects[label]:'').filter(Boolean).at(-1);
+  const {middle}=assessmentExcelPeriods[result.period];
+  for(let col=0;col<=end.c;col++){
+    const labels=headerLabels(col);
+    const group=labels.find(label=>Object.hasOwn(assessmentExcelRubricGroups,label));
+    if(group){
+      const collection=assessmentExcelRubricGroups[group];
+      const catalog=assessmentExcelRubrics[collection];
+      const key=catalog.findIndex(name=>labels.includes(assessmentExcelText(name))||(name==='Thẩm mĩ'&&labels.includes('tham my')));
+      const field=middle?(collection==='competencies'?'midCompetencies':'midQualities'):collection;
+      if(key!==-1)result.columns.push({col,kind:'rubric',field,key,subjectName:catalog[key]});
+      continue;
+    }
+    const scoreAt=labels.findIndex(label=>scoreHeader.test(label));
+    const levelAt=labels.findIndex(label=>levelHeader.test(label));
+    const commentAt=labels.findIndex(label=>commentHeader.test(label));
+    const proposalAt=labels.findIndex(label=>proposalHeader.test(label));
+    if(proposalAt>=0){
+      result.columns.push({col,kind:'remark',field:middle?'midProposal':'proposal',subjectName:'Đề nghị phối hợp với gia đình'});
+    }else if(scoreAt>=0||levelAt>=0){
+      const isScore=scoreAt>=0,index=isScore?scoreAt:levelAt;
+      const subject=subjectFor(labels.slice(0,index))||(isScore&&col>0?subjectFor(headerLabels(col-1,headerRow+index)):'');
+      if(subject){
+        const field=isScore?(middle?'midScore':'score'):(middle?'midLevel':'level');
+        result.columns.push({col,kind:isScore?'score':'level',field,subject});
       }
-      if(!subject&&col>0){
-        for(let prev=row-1;prev>=headerRow&&!subject;prev--){
-          const label=assessmentExcelText(rows[prev]?.[col-1]);
-          subject=Object.hasOwn(assessmentExcelSubjects,label)?assessmentExcelSubjects[label]:'';
-        }
-      }
-      const isMiddle=assessmentExcelPeriods[result.period].field==='midScore';
-      if(subject&&(!isMiddle||['tiengviet','toan'].includes(subject)))result.columns.push({col,subject});
-    });
+    }else if(commentAt>=0){
+      const subject=subjectFor(labels.slice(0,commentAt));
+      result.columns.push({col,kind:'remark',field:middle?'midComment':'comment',subject,
+        subjectName:'Nhận xét chung',fallback:!subject&&labels[commentAt].startsWith('ghi chu')});
+    }
   }
+  result.columns.sort((a,b)=>Number(Boolean(a.fallback))-Number(Boolean(b.fallback)));
   for(let index=start;index<rows.length;index++){
     const row=rows[index],name=String(row[nameCol]??'').trim();
     if(!/[a-z]/.test(assessmentExcelText(name))||(orderCol>=0&&!numberedRow(row)))continue;
@@ -3167,7 +3230,12 @@ function readAssessmentExcelSheet(sheet,sheetName,fileName,date1904){
     const code=String(codeCell?.w??row[codeCol]??'').trim();
     const dob=assessmentExcelDate(row[dateCol],date1904);
     const gender=assessmentExcelGender(row[genderCol],headers[genderCol]);
-    const values=result.columns.map(({col,subject})=>({subject,value:assessmentExcelScore(row[col])})).filter(cell=>cell.value!==null);
+    const values=[];
+    for(const {col,fallback,...column} of result.columns){
+      const value=assessmentExcelValue(column.kind,row[col]);
+      if(value===null||(fallback&&values.some(entry=>!entry.subject&&entry.field===column.field)))continue;
+      values.push({...column,value});
+    }
     result.rows.push({name,code,dob,gender,values,row:index+1});
   }
   return result;
@@ -3225,40 +3293,43 @@ function planAssessmentExcelImport(sheets,allowRoster){
   }
   for(const sheet of sheets){
     const rejected=sheet.issue||classIssue(sheet);
-    const label=assessmentExcelPeriods[sheet.period]?.label||'';
-    const summary={sheet,matched:0,filled:0,message:rejected};
+    const summary={sheet,matched:0,filled:0,levels:0,rubrics:0,remarks:0,message:rejected};
     summaries.push(summary);
     if(rejected)continue;
-    if(!sheet.columns.length)summary.message='Bảng không có cột điểm số phù hợp';
-    const {term,field}=assessmentExcelPeriods[sheet.period];
+    if(!sheet.columns.length)summary.message='Bảng không có cột đánh giá phù hợp';
+    const {term,label}=assessmentExcelPeriods[sheet.period];
     for(const row of sheet.rows){
       const {student,issue}=matchAssessmentExcelStudent(row,roster);
       if(issue){issues.push({sheet,row,message:issue});continue;}
       summary.matched++;
       for(const cell of row.values){
-        const subject=assessmentSubjects.find(sub=>sub.key===cell.subject);
-        if(!subject)continue;
-        if(!Number.isFinite(cell.value)){
-          issues.push({sheet,row,message:`${subject.name} có điểm ngoài khoảng 0–10 hoặc sai định dạng`});
+        const {kind,field,subject,key:rubricKey,value}=cell;
+        const subjectName=subject?assessmentSubjects.find(sub=>sub.key===subject)?.name:cell.subjectName;
+        if(!subjectName)continue;
+        if(Number.isNaN(value)){
+          const expected=kind==='score'?'điểm từ 0 đến 10':kind==='level'?'mức T, H hoặc C':'mức T, Đ hoặc C';
+          issues.push({sheet,row,message:`${subjectName} cần ${expected}`});
           continue;
         }
-        summary.filled++;
-        const key=`${student.id}|${term}|${cell.subject}|${field}`;
+        const countKey={score:'filled',level:'levels',rubric:'rubrics',remark:'remarks'}[kind];
+        summary[countKey]++;
+        const key=`${student.id}|${term}|${subject??rubricKey??''}|${field}`;
         if(conflicts.has(key))continue;
         const previous=changes.get(key);
-        if(previous&&previous.value!==cell.value){
+        if(previous&&previous.value!==value){
           conflicts.add(key);
           changes.delete(key);
-          issues.push({sheet,row,message:`${subject.name} có hai điểm khác nhau cho cùng đợt`});
+          issues.push({sheet,row,message:`${subjectName} có hai giá trị khác nhau cho cùng đợt`});
           continue;
         }
-        const old=db.academic?.[student.id]?.[term]?.subjects?.[cell.subject]?.[field];
-        changes.set(key,{id:student.id,name:student.name,term,subject:cell.subject,subjectName:subject.name,field,label,value:cell.value,old:old??''});
+        const data=db.academic?.[student.id]?.[term];
+        const old=subject?data?.subjects?.[subject]?.[field]:kind==='rubric'?data?.[field]?.[rubricKey]:data?.[field];
+        changes.set(key,{id:student.id,name:student.name,term,subject,subjectName,kind,field,rubricKey,label,value,old:old??''});
       }
     }
-    if(!summary.message&&!summary.filled)summary.message='Các ô điểm số đang trống';
+    if(!summary.message&&!summary.filled&&!summary.levels&&!summary.rubrics&&!summary.remarks)summary.message='Các ô đánh giá đang trống';
   }
-  const updates=[...changes.values()].filter(change=>assessmentExcelScore(change.old)!==change.value);
+  const updates=[...changes.values()].filter(change=>assessmentExcelValue(change.kind,change.old)!==change.value);
   return {summaries,issues,updates,added,unchanged:changes.size-updates.length,canAdd:!db.students.length&&!!sourceRoster,
     metadata:{className:inferredClass,year:inferredYear}};
 }
@@ -3266,19 +3337,23 @@ function planAssessmentExcelImport(sheets,allowRoster){
 function showAssessmentExcelPlan(session){
   const plan=session.plan,{updates,added,issues,summaries}=plan;
   const overwrite=updates.filter(item=>item.old!==''&&item.old!=null);
-  const sheetRows=summaries.map(({sheet,matched,filled,message})=>{
+  const counts={score:0,level:0,rubric:0,remark:0};
+  const typeLabel={score:'Điểm kiểm tra',level:'Mức môn học',rubric:'Năng lực / phẩm chất',remark:'Nhận xét / đề nghị'};
+  updates.forEach(item=>counts[item.kind]++);
+  const breakdown=(scores,levels,rubrics,remarks)=>[`${scores} điểm`,`${levels} mức môn học`,`${rubrics} mức năng lực/phẩm chất`,`${remarks} nhận xét/đề nghị`].join(' · ');
+  const sheetRows=summaries.map(({sheet,matched,filled,levels,rubrics,remarks,message})=>{
     const period=assessmentExcelPeriods[sheet.period]?.label||'—';
-    return `<tr><td>${esc(sheet.fileName)} · <b>${esc(sheet.sheetName)}</b></td><td>${esc(period)}</td><td>${esc(sheet.className||'—')}</td><td>${matched}/${sheet.rows.length}</td><td>${filled}</td><td>${esc(message||'Đã đọc')}</td></tr>`;
+    return `<tr><td>${esc(sheet.fileName)} · <b>${esc(sheet.sheetName)}</b></td><td>${esc(period)}</td><td>${esc(sheet.className||'—')}</td><td>${matched}/${sheet.rows.length}</td><td>${breakdown(filled,levels,rubrics,remarks)}</td><td>${esc(message||'Đã đọc')}</td></tr>`;
   }).join('');
   const issuesHtml=issues.length?`<details><summary>${issues.length} dòng hoặc ô cần kiểm tra</summary><ul>${issues.map(({sheet,row,message})=>`<li><b>${esc(sheet.sheetName)} · dòng ${row.row} · ${esc(row.name)}</b> — ${esc(message)}</li>`).join('')}</ul></details>`:'';
-  const scoresHtml=updates.length?`<details><summary>Xem ${updates.length} ô điểm sẽ cập nhật</summary><div class="table-wrap" style="max-height:280px"><table class="student-full-table"><thead><tr><th>Học sinh</th><th>Đợt</th><th>Môn</th><th>Điểm cũ</th><th>Điểm nhập</th></tr></thead><tbody>${updates.map(item=>`<tr><td>${esc(item.name)}</td><td>${esc(item.label)}</td><td>${esc(item.subjectName)}</td><td>${esc(item.old===''?'—':item.old)}</td><td><b>${esc(item.value)}</b></td></tr>`).join('')}</tbody></table></div></details>`:'';
+  const valuesHtml=updates.length?`<details><summary>Xem ${updates.length} ô sẽ cập nhật</summary><div class="table-wrap" style="max-height:280px"><table class="student-full-table"><thead><tr><th>Học sinh</th><th>Đợt</th><th>Nội dung</th><th>Giá trị cũ</th><th>Giá trị Excel</th></tr></thead><tbody>${updates.map(item=>`<tr><td>${esc(item.name)}</td><td>${esc(item.label)}</td><td>${esc(item.subjectName)}<br><small>${typeLabel[item.kind]}</small></td><td style="white-space:pre-wrap">${esc(item.old===''?'—':item.old)}</td><td style="white-space:pre-wrap"><b>${esc(item.value)}</b></td></tr>`).join('')}</tbody></table></div></details>`:'';
   const canSave=updates.length||added.length;
   const rosterHtml=plan.canAdd?`<label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input type="checkbox" ${session.allowRoster?'checked':''} onchange="reviewAssessmentExcelRoster(this.checked)"> Tạo danh sách học sinh từ bảng tổng hợp vì lớp đang trống</label>`:'';
   const className=db.settings?.className||plan.metadata.className,year=db.settings?.year||plan.metadata.year;
-  showModal('Nhập điểm từ Excel',`<div class="note-box"><b>${className?`Lớp ${esc(className)}`:'Chưa chọn lớp'}${year?` · ${esc(year)}`:''}</b><div>${updates.length} ô sẽ cập nhật${overwrite.length?` (${overwrite.length} ô đã có điểm)` : ''} · ${plan.unchanged} ô đã khớp${added.length?` · thêm ${added.length} học sinh`:''}</div>${rosterHtml}</div>
-    <div class="table-wrap" style="margin:12px 0"><table class="student-full-table"><thead><tr><th>Tệp · Sheet</th><th>Đợt</th><th>Lớp</th><th>Ghép được</th><th>Ô điểm đọc được</th><th>Kết quả</th></tr></thead><tbody>${sheetRows}</tbody></table></div>
-    ${issuesHtml}${scoresHtml}
-    <div class="toolbar" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" onclick="closeModal()">Đóng</button><button type="button" class="btn primary" onclick="commitAssessmentExcelImport()" ${canSave?'':'disabled'}>✓ ${updates.length?'Lưu điểm vào lớp':'Lưu danh sách vào lớp'}</button></div>`);
+  showModal('Nhập đánh giá từ Excel',`<div class="note-box"><b>${className?`Lớp ${esc(className)}`:'Chưa chọn lớp'}${year?` · ${esc(year)}`:''}</b><div>${updates.length} ô sẽ cập nhật${overwrite.length?` (${overwrite.length} ô đang có giá trị)` : ''} · ${plan.unchanged} ô đã khớp${added.length?` · thêm ${added.length} học sinh`:''}</div><div class="muted">${breakdown(counts.score,counts.level,counts.rubric,counts.remark)}</div>${rosterHtml}</div>
+    <div class="table-wrap" style="margin:12px 0"><table class="student-full-table"><thead><tr><th>Tệp · Sheet</th><th>Đợt</th><th>Lớp</th><th>Ghép được</th><th>Dữ liệu đọc được</th><th>Kết quả</th></tr></thead><tbody>${sheetRows}</tbody></table></div>
+    ${issuesHtml}${valuesHtml}
+    <div class="toolbar" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" onclick="closeModal()">Đóng</button><button type="button" class="btn primary" onclick="commitAssessmentExcelImport()" ${canSave?'':'disabled'}>✓ ${updates.length?'Lưu đánh giá vào lớp':'Lưu danh sách vào lớp'}</button></div>`);
 }
 
 async function openAssessmentExcelImport(files){
@@ -3330,9 +3405,16 @@ function commitAssessmentExcelImport(){
       copied.add(item.id);
     }
     const term=academic[item.id][item.term]??={subjects:{},competencies:{},qualities:{},comment:'',proposal:''};
-    const subjects=term.subjects??={};
-    const subject=subjects[item.subject]??={};
-    subject[item.field]=item.value;
+    if(item.subject){
+      const subjects=term.subjects??={};
+      const subject=subjects[item.subject]??={};
+      subject[item.field]=item.value;
+    }else if(item.kind==='rubric'){
+      const rubric=term[item.field]??={};
+      rubric[item.rubricKey]=item.value;
+    }else{
+      term[item.field]=item.value;
+    }
   }
   db.students=[...oldStudents,...plan.added];
   db.academic=academic;
@@ -3354,8 +3436,11 @@ function commitAssessmentExcelImport(){
     if(typeof refreshQuickIdentity==='function')refreshQuickIdentity();
     renderAll();
   }
+  const updatedTerms=new Set(plan.updates.map(item=>item.term));
+  const termSelect=typeof document==='undefined'?null:document.getElementById('assessmentTerm');
+  if(termSelect&&updatedTerms.size===1)termSelect.value=updatedTerms.values().next().value;
   renderAssessment();
-  toast(`✓ Đã lưu ${plan.updates.length} ô điểm${plan.added.length?` · thêm ${plan.added.length} học sinh`:''}`);
+  toast(`✓ Đã lưu ${plan.updates.length} ô đánh giá${plan.added.length?` · thêm ${plan.added.length} học sinh`:''}`);
 }
 
 function phaseResultStore(studentId){
@@ -3382,11 +3467,41 @@ function assessmentScoreText(score, missing='—'){
 function assessmentMidtermLabel(term){
   return phaseLabel(term==='hk1'?'mid1':'mid2');
 }
-function assessmentSubjectRows(data){
-  return assessmentSubjects.map(sub=>{
+function assessmentSubjectsForClass(className, records=[]){
+  const grade=String(className??'').trim().match(/^(?:lớp\s*)?([1-5])(?:\D|$)/i)?.[1];
+  const recorded=new Set();
+  for(const record of records){
+    for(const [key, subject] of Object.entries(record?.subjects||{})){
+      if(Object.values(subject||{}).some(value=>value!=null&&value!==''))recorded.add(key);
+    }
+  }
+  return assessmentSubjects.filter(sub=>!grade||!sub.grades||sub.grades.includes(grade)||recorded.has(sub.key));
+}
+function assessmentSubjectRows(data,className){
+  return assessmentSubjectsForClass(className,[data]).map(sub=>{
     const subject=data?.subjects?.[sub.key]||{};
-    return `<tr><td>${esc(sub.name)}</td><td>${esc(levelText(subject.level))}</td><td>${esc(assessmentScoreText(subject.midScore))}</td><td>${esc(assessmentScoreText(subject.score))}</td><td>${esc(subject.comment||'')}</td></tr>`;
+    return `<tr><td>${esc(sub.name)}</td><td>${esc(subject.midLevel||'—')}</td><td>${esc(assessmentScoreText(subject.midScore))}</td><td>${esc(subject.level||'—')}</td><td>${esc(assessmentScoreText(subject.score))}</td><td>${assessmentRemarks(subject.midComment,subject.comment,'')}</td></tr>`;
   }).join('');
+}
+function assessmentRemarks(mid,final,empty='Chưa nhập.'){
+  return [['Giữa kỳ',mid],['Cuối kỳ',final]].filter(([,value])=>String(value??'').trim()).map(([label,value])=>`<p class="assessment-remark" style="white-space:pre-wrap"><b>${label}:</b> ${esc(value)}</p>`).join('')||`<p>${esc(empty)}</p>`;
+}
+function assessmentRubricText(values,names){
+  return names.flatMap((name,i)=>values?.[i]?[`${name}: ${values[i]}`]:[]).join(' · ');
+}
+function assessmentRubricSummary(mid,final,names,empty='—'){
+  return assessmentRemarks(assessmentRubricText(mid,names),assessmentRubricText(final,names),empty);
+}
+function assessmentRubricFields(names,mid,final,prefix){
+  return names.map((name,i)=>{
+    const input=(id,label,value)=>`<div class="form-group"><label for="${id}">${label}</label><select id="${id}"><option value="">Chưa nhập</option>${competencyOptions.map(option=>`<option value="${esc(option)}" ${option===value?'selected':''}>${esc(option)}</option>`).join('')}</select></div>`;
+    return `<div class="card" style="padding:10px;margin:0"><strong>${esc(name)}</strong><div class="form-grid">${input(`${prefix}_mid_${i}`,'Giữa kỳ',mid?.[i])}${input(`${prefix}_${i}`,'Cuối kỳ',final?.[i])}</div></div>`;
+  }).join('');
+}
+function assessmentReadRubric(names,previous,prefix){
+  const data={...previous};
+  names.forEach((_,i)=>{const input=document.getElementById(`${prefix}_${i}`);if(input)data[i]=input.value;});
+  return data;
 }
 function openMidtermScores(studentId,term){
   const student=db.students.find(s=>s.id===studentId);
@@ -3414,40 +3529,54 @@ function saveMidtermScores(studentId,term){
 function renderAssessment(){
   const term=document.getElementById('assessmentTerm')?.value||'hk1';
   const body=document.getElementById('assessmentTable'); if(!body)return;
+  const subjects=assessmentSubjectsForClass(db.settings?.className,db.students.flatMap(student=>{
+    const data=db.academic?.[student.id];return [data?.hk1,data?.hk2];
+  }));
+  const header=document.getElementById('assessmentSubjectHead');
+  if(header){
+    const row=header.parentElement;
+    row.querySelectorAll('[data-assessment-subject-header]').forEach(node=>node.remove());
+    header.insertAdjacentHTML('beforebegin',subjects.map(sub=>`<th scope="col" title="${esc(sub.name)}" data-assessment-subject-header="${sub.key}">${esc(sub.shortName||sub.name)}</th>`).join(''));
+    header.hidden=true;
+  }
   let ready=0,excellent=0;
   const rows=db.students.map((s,i)=>{
     const d=assessmentData(s.id,term);
-    const has=Object.values(d.subjects||{}).some(subject=>subject?.level||
+    const has=Object.values(d.subjects||{}).some(subject=>subject?.level||subject?.midLevel||subject?.comment||subject?.midComment||
       assessmentScoreText(subject?.score,'')!==''||assessmentScoreText(subject?.midScore,'')!=='')
+      || Object.values(d.midCompetencies||{}).some(Boolean) || Object.values(d.midQualities||{}).some(Boolean)
+      || d.midComment || d.midProposal
       || Object.values(d.competencies||{}).some(Boolean)
       || Object.values(d.qualities||{}).some(Boolean)
       || d.comment||d.proposal;
     if(has)ready++;
     if(d.proposal?.toLowerCase().includes('xuất sắc'))excellent++;
-    const subjectCell=key=>{
-      const x=d.subjects?.[key]||{};
-      const score=assessmentScoreText(x.score,'');
-      const badge=score!==''?` <span class="portal-badge">${esc(score)}</span>`:'';
-      return `<button type="button" class="assessment-cell" onclick="openAssessment(${s.id})"><b>${esc(x.level||'—')}</b>${badge}</button>`;
+    const subjectCell=sub=>{
+      const x=d.subjects?.[sub.key]||{};
+      const line=(phase,label,level,score)=>{
+        const value=assessmentScoreText(score,'');
+        return `<span class="assessment-subject-line" data-assessment-phase="${phase}"><small>${label}</small><b title="${esc(levelText(level))}">${esc(level||'—')}</b>${value!==''?` <span class="portal-badge">${esc(value)}</span>`:''}</span>`;
+      };
+      return `<button type="button" class="assessment-cell assessment-subject" data-subject="${sub.key}" aria-label="Sửa đánh giá môn ${esc(sub.name)} của ${esc(s.name)}" onclick="openAssessment(${s.id})">${line('mid','Giữa kỳ',x.midLevel,assessmentMidtermSubjects.includes(sub)?null:x.midScore)}${line('final','Cuối kỳ',x.level,x.score)}</button>`;
     };
     const midtermCell=period=>{
       const subjects=db.academic?.[s.id]?.[period]?.subjects;
       const marks=assessmentMidtermSubjects.map(sub=>`<span>${esc(sub.name)} <b>${esc(assessmentScoreText(subjects?.[sub.key]?.midScore))}</b></span>`).join('');
       return `<button type="button" class="assessment-cell assessment-midterm" aria-label="Sửa điểm ${assessmentMidtermLabel(period)} của ${esc(s.name)}" onclick="openMidtermScores(${s.id},'${period}')">${marks}</button>`;
     };
-    const comp=Object.values(d.competencies||{}).filter(Boolean).join(', ')||'—';
-    const qual=Object.values(d.qualities||{}).filter(Boolean).join(', ')||'—';
+    const comp=assessmentRubricSummary(d.midCompetencies,d.competencies,assessmentCompetencyNames);
+    const qual=assessmentRubricSummary(d.midQualities,d.qualities,assessmentQualityNames);
     return `<tr>
       <td>${i+1}</td><td><div class="student-name">${esc(s.name)}</div><div class="student-meta">${esc(s.group||'Chưa phân tổ')}</div></td>
       <td>${midtermCell('hk1')}</td><td>${midtermCell('hk2')}</td>
-      <td>${subjectCell('tiengviet')}</td><td>${subjectCell('toan')}</td><td>${subjectCell('ngoaingu')}</td>
-      <td>${subjectCell('lsdiali')}</td><td>${subjectCell('khoahoc')}</td><td>${subjectCell('tinhoc')}</td><td>${subjectCell('congnghe')}</td>
-      <td><span class="student-meta">${esc(comp)}</span></td><td><span class="student-meta">${esc(qual)}</span></td>
-      <td class="assessment-comment"><span class="student-meta">${esc(d.comment||'—')}</span></td>
+      ${subjects.map(sub=>`<td>${subjectCell(sub)}</td>`).join('')}
+      <td class="assessment-comment"><details><summary>Xem năng lực</summary>${comp}</details></td>
+      <td class="assessment-comment"><details><summary>Xem phẩm chất</summary>${qual}</details></td>
+      <td class="assessment-comment" data-assessment-remarks>${assessmentRemarks(d.midComment,d.comment,'—')}</td>
       <td><button type="button" class="btn sm primary" onclick="openMeetingSheet(${s.id})">Phiếu</button></td>
     </tr>`;
   }).join('');
-  body.innerHTML=rows||`<tr><td colspan="15" class="empty">Chưa có học sinh</td></tr>`;
+  body.innerHTML=rows||`<tr><td colspan="${subjects.length+8}" class="empty">Chưa có học sinh</td></tr>`;
   document.getElementById('assessmentTotal').textContent=db.students.length;
   document.getElementById('assessmentReady').textContent=ready;
   document.getElementById('assessmentNeed').textContent=Math.max(0,db.students.length-ready);
@@ -3456,31 +3585,37 @@ function renderAssessment(){
 function openAssessment(studentId){
   const term=document.getElementById('assessmentTerm')?.value||'hk1',s=db.students.find(x=>x.id===studentId); if(!s)return;
   const d=assessmentData(studentId,term);
-  const subjectsHtml=assessmentSubjects.map(sub=>{
+  const records=db.academic?.[studentId]||{};
+  const subjectsHtml=assessmentSubjectsForClass(db.settings?.className,[d,records.hk1,records.hk2]).map(sub=>{
     const x=d.subjects?.[sub.key]||{};
+    const control=(key,label)=>`<div class="form-group"><label for="sub_${sub.key}_${key}">${label}</label><select id="sub_${sub.key}_${key}">${gradeOptions.map(o=>`<option value="${o.v}" ${o.v===(x[key]||'')?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>`;
+    const point=(key,label)=>`<div class="form-group"><label for="sub_${sub.key}_${key}">${label}</label><input id="sub_${sub.key}_${key}" type="number" min="0" max="10" step="any" value="${esc(assessmentScoreText(x[key],''))}"></div>`;
+    const comment=(key,label)=>`<div class="form-group"><label for="sub_${sub.key}_${key}">${label}</label><textarea id="sub_${sub.key}_${key}">${esc(x[key]||'')}</textarea></div>`;
     return `<div class="card" style="padding:13px;margin:0">
-      <div class="card-head" style="margin-bottom:9px"><strong>${esc(sub.name)}</strong><span class="muted" style="font-size:12px">${sub.score?'Có thể nhập điểm KTĐK 0–10':'Đánh giá mức độ'}</span></div>
+      <div class="card-head" style="margin-bottom:9px"><strong>${esc(sub.name)}</strong></div>
       <div class="form-grid">
-        <div class="form-group"><label>Mức đạt được</label><select id="sub_${sub.key}_level">${gradeOptions.map(o=>`<option value="${o.v}" ${o.v===(x.level||'')?'selected':''}>${esc(o.t)}</option>`).join('')}</select></div>
-        <div class="form-group"><label>Điểm cuối kỳ${sub.score?'':' (không bắt buộc)'}</label><input id="sub_${sub.key}_score" type="number" min="0" max="10" step="0.1" value="${x.score===undefined?'':esc(x.score)}" ${sub.score?'':'placeholder="—"'}></div>
-        <div class="form-group full"><label>Nhận xét môn học / HĐGD</label><textarea id="sub_${sub.key}_comment">${esc(x.comment||'')}</textarea></div>
+        ${control('midLevel','Mức giữa kỳ')}${control('level','Mức cuối kỳ')}
+        ${assessmentMidtermSubjects.includes(sub)||assessmentScoreText(x.midScore,'')!==''?point('midScore','Điểm giữa kỳ'):''}
+        ${sub.score||assessmentScoreText(x.score,'')!==''?point('score','Điểm cuối kỳ'):''}
+        ${comment('midComment','Nhận xét giữa kỳ')}${comment('comment','Nhận xét cuối kỳ')}
       </div>
     </div>`;
   }).join('');
-  const compNames=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo'];
-  const qualityNames=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];
-  const compHtml=compNames.map((n,i)=>`<div class="form-group"><label>${n}</label><select id="comp_${i}"><option value="">Chưa nhập</option>${competencyOptions.map(o=>`<option ${d.competencies?.[i]===o?'selected':''}>${o}</option>`).join('')}</select></div>`).join('');
-  const qualHtml=qualityNames.map((n,i)=>`<div class="form-group"><label>${n}</label><select id="qual_${i}"><option value="">Chưa nhập</option>${competencyOptions.map(o=>`<option ${d.qualities?.[i]===o?'selected':''}>${o}</option>`).join('')}</select></div>`).join('');
+  const compHtml=assessmentRubricFields(assessmentCompetencyNames,d.midCompetencies,d.competencies,'comp');
+  const qualHtml=assessmentRubricFields(assessmentQualityNames,d.midQualities,d.qualities,'qual');
   showModal(`Đánh giá ${esc(s.name)} – ${term==='hk1'?'Học kỳ I':'Học kỳ II / Cuối năm'}`,`
     <div class="note-box"><strong>👨‍🎓 ${esc(s.name)}</strong><div class="muted">Mỗi học kỳ lưu độc lập. Bạn có thể chỉnh sửa bất cứ lúc nào.</div></div>
     <h3>Môn học và hoạt động giáo dục</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${subjectsHtml}</div>
-    <h3 style="margin-top:18px">🧠 Năng lực chung</h3>
-    <div class="form-grid">${compHtml}</div>
-    <h3 style="margin-top:18px">🌱 Phẩm chất chủ yếu</h3>
-    <div class="form-grid">${qualHtml}</div>
-    <div class="form-group" style="margin-top:14px"><label>Nhận xét chung cuối kỳ</label><textarea id="assessmentComment" placeholder="Nhập nhận xét tổng quát...">${esc(d.comment||'')}</textarea></div>
-    <div class="form-group" style="margin-top:12px"><label>Đề nghị / ghi chú cho họp phụ huynh</label><textarea id="assessmentProposal" placeholder="Ví dụ: Phối hợp rèn đọc...">${esc(d.proposal||'')}</textarea></div>
+    <div class="assessment-edit-grid">${subjectsHtml}</div>
+    <details style="margin-top:18px"><summary>🧠 Năng lực</summary><div class="assessment-edit-grid">${compHtml}</div></details>
+    <details style="margin-top:18px"><summary>🌱 Phẩm chất chủ yếu</summary><div class="assessment-edit-grid">${qualHtml}</div></details>
+    <h3 style="margin-top:18px">Nhận xét chung và phối hợp với gia đình</h3>
+    <div class="assessment-edit-grid">
+      <div class="form-group"><label for="assessmentMidComment">Nhận xét chung giữa kỳ</label><textarea id="assessmentMidComment">${esc(d.midComment||'')}</textarea></div>
+      <div class="form-group"><label for="assessmentComment">Nhận xét chung cuối kỳ</label><textarea id="assessmentComment">${esc(d.comment||'')}</textarea></div>
+      <div class="form-group"><label for="assessmentMidProposal">Đề nghị phối hợp giữa kỳ</label><textarea id="assessmentMidProposal">${esc(d.midProposal||'')}</textarea></div>
+      <div class="form-group"><label for="assessmentProposal">Đề nghị phối hợp cuối kỳ</label><textarea id="assessmentProposal">${esc(d.proposal||'')}</textarea></div>
+    </div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:15px">
       <button class="btn" onclick="openMeetingSheet(${studentId})">📄 Xem phiếu họp</button>
       <button class="btn primary" onclick="saveAssessment(${studentId})">✓ Lưu đánh giá</button>
@@ -3489,30 +3624,47 @@ function openAssessment(studentId){
 function saveAssessment(studentId){
   const term=document.getElementById('assessmentTerm')?.value||'hk1',d=assessmentData(studentId,term);
   d.subjects ||= {};
-  assessmentSubjects.forEach(sub=>{
-    d.subjects[sub.key]={
-      ...d.subjects[sub.key],
-      level:document.getElementById('sub_'+sub.key+'_level')?.value||'',
-      score:document.getElementById('sub_'+sub.key+'_score')?.value||'',
-      comment:document.getElementById('sub_'+sub.key+'_comment')?.value||''
-    };
+  const gradeFields=['midLevel','level','midScore','score','midComment','comment'];
+  const inputs=assessmentSubjects.flatMap(sub=>gradeFields.flatMap(key=>{
+    const input=document.getElementById(`sub_${sub.key}_${key}`);
+    return input?[{sub,key,input}]:[];
+  }));
+  if(inputs.some(({input})=>input.reportValidity&&!input.reportValidity()))return;
+  inputs.forEach(({sub,key,input})=>{
+    d.subjects[sub.key] ||= {};
+    d.subjects[sub.key][key]=input.value;
   });
-  d.competencies={}; d.qualities={};
-  [0,1,2].forEach(i=>d.competencies[i]=document.getElementById('comp_'+i)?.value||'');
-  [0,1,2,3,4].forEach(i=>d.qualities[i]=document.getElementById('qual_'+i)?.value||'');
-  d.comment=document.getElementById('assessmentComment')?.value||'';
-  d.proposal=document.getElementById('assessmentProposal')?.value||'';
+  d.midCompetencies=assessmentReadRubric(assessmentCompetencyNames,d.midCompetencies,'comp_mid');
+  d.competencies=assessmentReadRubric(assessmentCompetencyNames,d.competencies,'comp');
+  d.midQualities=assessmentReadRubric(assessmentQualityNames,d.midQualities,'qual_mid');
+  d.qualities=assessmentReadRubric(assessmentQualityNames,d.qualities,'qual');
+  for(const [field,id] of Object.entries({midComment:'assessmentMidComment',comment:'assessmentComment',midProposal:'assessmentMidProposal',proposal:'assessmentProposal'})){
+    const input=document.getElementById(id);if(input)d[field]=input.value;
+  }
   save();closeModal();renderAssessment();toast('✓ Đã lưu đánh giá');
 }
 function meetingData(studentId,term){return assessmentData(studentId,term)}
+function openAssessmentRemarks(studentId){
+  const term=document.getElementById('assessmentTerm')?.value||'hk1';
+  const d=assessmentData(studentId,term);
+  const field=(id,label,value)=>`<div class="form-group"><label for="${id}">${label}</label><textarea id="${id}">${esc(value||'')}</textarea></div>`;
+  showModal('Nhận xét và đề nghị phối hợp',`<form onsubmit="event.preventDefault();saveMeetingRemarks(${studentId},'${term}')">
+    <div class="assessment-edit-grid">${field('meetingMidComment','Nhận xét chung giữa kỳ',d.midComment)}${field('meetingComment','Nhận xét chung cuối kỳ',d.comment)}${field('meetingMidProposal','Đề nghị phối hợp giữa kỳ',d.midProposal)}${field('meetingProposal','Đề nghị phối hợp cuối kỳ',d.proposal)}</div>
+    <div class="toolbar" style="margin-top:12px;justify-content:flex-end"><button class="btn" type="button" onclick="openMeetingSheet(${studentId})">Quay lại phiếu</button><button type="submit" class="btn primary">Lưu nhận xét</button></div></form>`);
+}
+function saveMeetingRemarks(studentId,term){
+  const d=assessmentData(studentId,term);
+  for(const [key,id] of Object.entries({midComment:'meetingMidComment',comment:'meetingComment',midProposal:'meetingMidProposal',proposal:'meetingProposal'})){
+    const control=document.getElementById(id);if(control)d[key]=control.value;
+  }
+  save();renderAssessment();openMeetingSheet(studentId);toast('✓ Đã lưu nhận xét');
+}
 function openMeetingSheet(studentId){
   const term=document.getElementById('assessmentTerm')?.value||'hk1',s=db.students.find(x=>x.id===studentId); if(!s)return;
   const d=meetingData(studentId,term);
-  const subjectRows=assessmentSubjectRows(d);
-  const compNames=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo'];
-  const qualNames=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];
-  const comp=compNames.map((n,i)=>`<span class="portal-badge">${n}: ${esc(d.competencies?.[i]||'—')}</span>`).join(' ');
-  const qual=qualNames.map((n,i)=>`<span class="portal-badge">${n}: ${esc(d.qualities?.[i]||'—')}</span>`).join(' ');
+  const subjectRows=assessmentSubjectRows(d,db.settings?.className);
+  const comp=assessmentRubricSummary(d.midCompetencies,d.competencies,assessmentCompetencyNames);
+  const qual=assessmentRubricSummary(d.midQualities,d.qualities,assessmentQualityNames);
   showModal(`Phiếu họp phụ huynh – ${esc(s.name)}`,`
     <div class="note-box"><strong>${esc(db.settings.school)}</strong><div class="muted">Lớp ${esc(db.settings.className)} · ${term==='hk1'?'HỌC KỲ I':'HỌC KỲ II / CUỐI NĂM'}</div></div>
     <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
@@ -3520,18 +3672,18 @@ function openMeetingSheet(studentId){
       <div class="note-box"><b>Giới tính</b><div>${esc(s.gender||'—')}</div></div><div class="note-box"><b>Dân tộc</b><div>${esc(s.ethnicity||'—')}</div></div>
     </div>
     <h3 style="margin-top:18px">📘 Kết quả môn học và HĐGD</h3>
-    <div class="table-wrap"><table><thead><tr><th>Môn học / HĐGD</th><th>Mức đạt được</th><th>Điểm giữa kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${subjectRows}</tbody></table></div>
-    <h3 style="margin-top:18px">🧠 Năng lực chung</h3><div style="display:flex;gap:7px;flex-wrap:wrap">${comp}</div>
-    <h3 style="margin-top:18px">🌱 Phẩm chất chủ yếu</h3><div style="display:flex;gap:7px;flex-wrap:wrap">${qual}</div>
-    <div class="note-box" style="margin-top:18px"><b>Nhận xét chung</b><p>${esc(d.comment||'Chưa nhập.')}</p></div>
-    <div class="note-box"><b>Đề nghị phối hợp với gia đình</b><p>${esc(d.proposal||'Chưa nhập.')}</p></div>
-    <div style="text-align:right;margin-top:14px"><button class="btn primary" onclick="printMeetingSheet(${studentId})">🖨 In phiếu này</button></div>`);
+    <div class="table-wrap"><table><thead><tr><th>Môn học / HĐGD</th><th>Mức giữa kỳ</th><th>Điểm giữa kỳ</th><th>Mức cuối kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${subjectRows}</tbody></table></div>
+    <h3 style="margin-top:18px">🧠 Năng lực</h3><div>${comp}</div>
+    <h3 style="margin-top:18px">🌱 Phẩm chất chủ yếu</h3><div>${qual}</div>
+    <div class="note-box" style="margin-top:18px"><b>Nhận xét chung</b>${assessmentRemarks(d.midComment,d.comment)}</div>
+    <div class="note-box"><b>Đề nghị phối hợp với gia đình</b>${assessmentRemarks(d.midProposal,d.proposal)}</div>
+    <div class="toolbar" style="justify-content:flex-end;margin-top:14px"><button class="btn" type="button" onclick="openAssessmentRemarks(${studentId})">Sửa nhận xét và đề nghị</button><button class="btn primary" onclick="printMeetingSheet(${studentId})">🖨 In phiếu này</button></div>`);
 }
 function printMeetingSheet(studentId){
   const term=document.getElementById('assessmentTerm')?.value||'hk1',s=db.students.find(x=>x.id===studentId); if(!s)return;
   const d=meetingData(studentId,term);
-  const rows=assessmentSubjectRows(d);
-  const htmlOut=`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Phiếu họp PH - ${esc(s.name)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#111}h1{text-align:center;font-size:20px;margin:0}h2{font-size:17px;margin:20px 0 8px}p{margin:6px 0}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #aaa;padding:7px;vertical-align:top}th{background:#f3f4f6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box{border:1px solid #ddd;padding:8px}.box b{display:block;font-size:11px;color:#666;margin-bottom:4px}.sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:center;margin-top:45px}@media print{body{padding:0}}</style><\/head><body><h1>${esc(db.settings.school)}</h1><div style="text-align:center">PHIẾU TRAO ĐỔI KẾT QUẢ GIÁO DỤC – ${term==='hk1'?'HỌC KỲ I':'HỌC KỲ II / CUỐI NĂM'}</div><div class="grid" style="margin-top:18px"><div class="box"><b>Họ và tên</b>${esc(s.name)}</div><div class="box"><b>Lớp</b>${esc(db.settings.className)}</div><div class="box"><b>Giới tính</b>${esc(s.gender||'')}</div><div class="box"><b>Dân tộc</b>${esc(s.ethnicity||'')}</div></div><h2>1. Kết quả môn học và HĐGD</h2><table><thead><tr><th>Môn học / HĐGD</th><th>Mức đạt được</th><th>Điểm giữa kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table><h2>2. Năng lực chung</h2><p>${compNames.map((n,i)=>`${n}: ${esc(d.competencies?.[i]||'—')}`).join(' · ')}</p><h2>3. Phẩm chất chủ yếu</h2><p>${qualNames.map((n,i)=>`${n}: ${esc(d.qualities?.[i]||'—')}`).join(' · ')}</p><h2>4. Nhận xét chung</h2><p>${esc(d.comment||'')}</p><h2>5. Phối hợp với gia đình</h2><p>${esc(d.proposal||'')}</p><div class="sign"><div><b>GIÁO VIÊN CHỦ NHIỆM</b><div style="margin-top:60px">${esc(db.settings.teacher||'')}</div></div><div><b>PHỤ HUYNH HỌC SINH</b><div style="margin-top:60px">Ký và ghi rõ họ tên</div></div></div><script>window.onload=function(){window.print()}<\/script><\/body></html>`;
+  const rows=assessmentSubjectRows(d,db.settings?.className);
+  const htmlOut=`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Phiếu họp PH - ${esc(s.name)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#111}h1{text-align:center;font-size:20px;margin:0}h2{font-size:17px;margin:20px 0 8px}p{margin:6px 0}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #aaa;padding:7px;vertical-align:top}th{background:#f3f4f6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box{border:1px solid #ddd;padding:8px}.box b{display:block;font-size:11px;color:#666;margin-bottom:4px}.sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:center;margin-top:45px}@media print{body{padding:0}}</style><\/head><body><h1>${esc(db.settings.school)}</h1><div style="text-align:center">PHIẾU TRAO ĐỔI KẾT QUẢ GIÁO DỤC – ${term==='hk1'?'HỌC KỲ I':'HỌC KỲ II / CUỐI NĂM'}</div><div class="grid" style="margin-top:18px"><div class="box"><b>Họ và tên</b>${esc(s.name)}</div><div class="box"><b>Lớp</b>${esc(db.settings.className)}</div><div class="box"><b>Giới tính</b>${esc(s.gender||'')}</div><div class="box"><b>Dân tộc</b>${esc(s.ethnicity||'')}</div></div><h2>1. Kết quả môn học và HĐGD</h2><table><thead><tr><th>Môn học / HĐGD</th><th>Mức giữa kỳ</th><th>Điểm giữa kỳ</th><th>Mức cuối kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table><h2>2. Năng lực</h2>${assessmentRubricSummary(d.midCompetencies,d.competencies,assessmentCompetencyNames)}<h2>3. Phẩm chất chủ yếu</h2>${assessmentRubricSummary(d.midQualities,d.qualities,assessmentQualityNames)}<h2>4. Nhận xét chung</h2>${assessmentRemarks(d.midComment,d.comment,'')}<h2>5. Phối hợp với gia đình</h2>${assessmentRemarks(d.midProposal,d.proposal,'')}<div class="sign"><div><b>GIÁO VIÊN CHỦ NHIỆM</b><div style="margin-top:60px">${esc(db.settings.teacher||'')}</div></div><div><b>PHỤ HUYNH HỌC SINH</b><div style="margin-top:60px">Ký và ghi rõ họ tên</div></div></div><script>window.onload=function(){window.print()}<\/script><\/body></html>`;
   const w=window.open('','_blank');if(!w)return;w.document.write(htmlOut);w.document.close();
 }
 function printAllMeetingSheets(){
@@ -3543,24 +3695,29 @@ function printAllMeetingSheets(){
 }
 function meetingPrintSection(studentId,term){
  const s=db.students.find(x=>x.id===studentId),d=meetingData(studentId,term);
- const rows=assessmentSubjectRows(d);
- const cn=['Tự chủ và tự học','Giao tiếp và hợp tác','Giải quyết vấn đề và sáng tạo'];
- const qn=['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];
- return `<h1>${esc(db.settings.school)}</h1><div style="text-align:center">PHIẾU TRAO ĐỔI KẾT QUẢ GIÁO DỤC – ${term==='hk1'?'HỌC KỲ I':'HỌC KỲ II / CUỐI NĂM'}</div><div class="grid" style="margin-top:12px"><div class="box"><b>Họ và tên</b>${esc(s.name)}</div><div class="box"><b>Lớp</b>${esc(db.settings.className)}</div><div class="box"><b>Giới tính</b>${esc(s.gender||'')}</div><div class="box"><b>Dân tộc</b>${esc(s.ethnicity||'')}</div></div><h2>1. Kết quả môn học và HĐGD</h2><table><thead><tr><th>Môn học / HĐGD</th><th>Mức đạt được</th><th>Điểm giữa kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table><h2>2. Năng lực chung</h2><p>${cn.map((n,i)=>`${n}: ${esc(d.competencies?.[i]||'—')}`).join(' · ')}</p><h2>3. Phẩm chất chủ yếu</h2><p>${qn.map((n,i)=>`${n}: ${esc(d.qualities?.[i]||'—')}`).join(' · ')}</p><h2>4. Nhận xét chung</h2><p>${esc(d.comment||'')}</p><h2>5. Phối hợp với gia đình</h2><p>${esc(d.proposal||'')}</p><div class="sign"><div><b>GIÁO VIÊN CHỦ NHIỆM</b><div style="margin-top:40px">${esc(db.settings.teacher||'')}</div></div><div><b>PHỤ HUYNH HỌC SINH</b><div style="margin-top:40px">Ký và ghi rõ họ tên</div></div></div>`;
+ const rows=assessmentSubjectRows(d,db.settings?.className);
+ return `<h1>${esc(db.settings.school)}</h1><div style="text-align:center">PHIẾU TRAO ĐỔI KẾT QUẢ GIÁO DỤC – ${term==='hk1'?'HỌC KỲ I':'HỌC KỲ II / CUỐI NĂM'}</div><div class="grid" style="margin-top:12px"><div class="box"><b>Họ và tên</b>${esc(s.name)}</div><div class="box"><b>Lớp</b>${esc(db.settings.className)}</div><div class="box"><b>Giới tính</b>${esc(s.gender||'')}</div><div class="box"><b>Dân tộc</b>${esc(s.ethnicity||'')}</div></div><h2>1. Kết quả môn học và HĐGD</h2><table><thead><tr><th>Môn học / HĐGD</th><th>Mức giữa kỳ</th><th>Điểm giữa kỳ</th><th>Mức cuối kỳ</th><th>Điểm cuối kỳ</th><th>Nhận xét</th></tr></thead><tbody>${rows}</tbody></table><h2>2. Năng lực</h2>${assessmentRubricSummary(d.midCompetencies,d.competencies,assessmentCompetencyNames)}<h2>3. Phẩm chất chủ yếu</h2>${assessmentRubricSummary(d.midQualities,d.qualities,assessmentQualityNames)}<h2>4. Nhận xét chung</h2>${assessmentRemarks(d.midComment,d.comment,'')}<h2>5. Phối hợp với gia đình</h2>${assessmentRemarks(d.midProposal,d.proposal,'')}<div class="sign"><div><b>GIÁO VIÊN CHỦ NHIỆM</b><div style="margin-top:40px">${esc(db.settings.teacher||'')}</div></div><div><b>PHỤ HUYNH HỌC SINH</b><div style="margin-top:40px">Ký và ghi rõ họ tên</div></div></div>`;
 }
 function exportAssessment(){
  const term=document.getElementById('assessmentTerm')?.value||'hk1';
  const periods=['hk1','hk2'];
+ const subjectsForClass=assessmentSubjectsForClass(db.settings?.className,db.students.map(s=>db.academic?.[s.id]?.[term]));
  const midtermHeadings=periods.flatMap(period=>assessmentMidtermSubjects.map(sub=>`${assessmentMidtermLabel(period)} – ${sub.name}`));
- const rows=[['STT','Họ và tên',...midtermHeadings,...assessmentSubjects.map(sub=>sub.name),'Năng lực','Phẩm chất','Nhận xét','Đề nghị']];
+ const subjectHeadings=subjectsForClass.flatMap(sub=>[`${sub.name} – Giữa kỳ`,`${sub.name} – Cuối kỳ`,`${sub.name} – Nhận xét giữa kỳ`,`${sub.name} – Nhận xét cuối kỳ`]);
+ const rows=[['STT','Họ và tên',...midtermHeadings,...subjectHeadings,'Năng lực giữa kỳ','Năng lực cuối kỳ','Phẩm chất giữa kỳ','Phẩm chất cuối kỳ','Nhận xét giữa kỳ','Nhận xét cuối kỳ','Đề nghị giữa kỳ','Đề nghị cuối kỳ']];
  db.students.forEach((s,i)=>{
    const d=assessmentData(s.id,term);
    const midtermScores=periods.flatMap(period=>assessmentMidtermSubjects.map(sub=>assessmentScoreText(db.academic?.[s.id]?.[period]?.subjects?.[sub.key]?.midScore,'')));
-   const subjects=assessmentSubjects.map(sub=>{
+   const subjects=subjectsForClass.flatMap(sub=>{
      const mark=d.subjects?.[sub.key]||{};
-     return [mark.level,assessmentScoreText(mark.score,'')].filter(Boolean).join(' / ');
+     const mid=[mark.midLevel,assessmentScoreText(mark.midScore,'')].filter(Boolean).join(' / ');
+     const final=[mark.level,assessmentScoreText(mark.score,'')].filter(Boolean).join(' / ');
+     return [mid,final,mark.midComment||'',mark.comment||''];
    });
-   rows.push([i+1,s.name,...midtermScores,...subjects,Object.values(d.competencies||{}).filter(Boolean).join('; '),Object.values(d.qualities||{}).filter(Boolean).join('; '),d.comment||'',d.proposal||'']);
+   rows.push([i+1,s.name,...midtermScores,...subjects,
+     assessmentRubricText(d.midCompetencies,assessmentCompetencyNames),assessmentRubricText(d.competencies,assessmentCompetencyNames),
+     assessmentRubricText(d.midQualities,assessmentQualityNames),assessmentRubricText(d.qualities,assessmentQualityNames),
+     d.midComment||'',d.comment||'',d.midProposal||'',d.proposal||'']);
  });
  downloadCSV(`danh-gia-${term}-${db.settings.className}.csv`,rows); toast('✓ Đã xuất bảng đánh giá');
 }
@@ -4293,7 +4450,7 @@ function exitStudentMode(){
       const plan=document.getElementById('portalPlan');
       if(plan) plan.innerHTML=`<div class="note-box"><strong>Kế hoạch tuần</strong><p>${esc(d.week?.weeklyPlan||'Chưa cập nhật.')}</p></div><div class="student-comment-card"><strong>💬 Nhận xét tuần của em</strong><p>${esc(d.week?.comment||'Giáo viên chưa nhập nhận xét tuần này.')}</p></div>`;
       const academic=document.getElementById('portalAcademic');
-      if(academic && typeof renderAcademicForStudent==='function') academic.innerHTML=renderAcademicForStudent(d.academic||{});
+      if(academic && typeof renderAcademicForStudent==='function') academic.innerHTML=renderAcademicForStudent(d.academic||{},d.className);
       if(typeof renderStudentAccountsForPortal==='function') renderStudentAccountsForPortal(d.student?.accounts||[]);
       syncBadgeV53(true,'☁ Đã nhận dữ liệu');
       return true;
